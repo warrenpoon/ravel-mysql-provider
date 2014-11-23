@@ -48,11 +48,10 @@ module.exports = function(Ravel) {
       });
     };
 
-    MySQLProvider.exitTransaction = function(connection, finalErr, callback) {
-      if (finalErr) {
+    MySQLProvider.exitTransaction = function(connection, shouldCommit, callback) {
+      if (!shouldCommit) {
         connection.rollback(function(rollbackErr) {
           connection.release();
-          Ravel.Log.e(finalErr);
           callback(rollbackErr, null);
         });
       } else {

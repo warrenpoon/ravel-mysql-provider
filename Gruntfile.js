@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   	pkg: grunt.file.readJSON('package.json'),
   	jshint: {
     	files: {
-    		src: ['Gruntfile.js', 'ravel-mysql-provider.js']
+    		src: ['*.js']
     	},
 	    options: {
 	    	force: true,
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
 	  },
 	  watch: {
 	  	api: {
-	  		files: ['Gruntfile.js', 'ravel-mysql-provider.js'],
+	  		files: ['*.js'],
 	  		tasks: ['jshint'],
 	  		options: {
 	  			spawn: false
