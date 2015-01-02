@@ -10,17 +10,17 @@ module.exports = function(Ravel) {
   providers.push(MySQLProvider);
   Ravel.set('database providers', providers);
 
-	//required mysql parameters
-	Ravel.registerSimpleParameter('mysql host', true);
-	Ravel.registerSimpleParameter('mysql port', true);
-	Ravel.registerSimpleParameter('mysql user', true);
-	Ravel.registerSimpleParameter('mysql password', true);
-	Ravel.registerSimpleParameter('mysql database name', true);
-	Ravel.registerSimpleParameter('mysql connection pool size', true);
+  //required mysql parameters
+  Ravel.registerSimpleParameter('mysql host', true);
+  Ravel.registerSimpleParameter('mysql port', true);
+  Ravel.registerSimpleParameter('mysql user', true);
+  Ravel.registerSimpleParameter('mysql password', true);
+  Ravel.registerSimpleParameter('mysql database name', true);
+  Ravel.registerSimpleParameter('mysql connection pool size', true);
 
   Ravel.on('start', function() {
     Ravel.Log.l('Using mysql database provider');
-    
+
     var pool  = mysql.createPool({
       host     : Ravel.get('mysql host'),
       port     : Ravel.get('mysql port'),
