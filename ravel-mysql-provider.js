@@ -19,7 +19,7 @@ module.exports = function(Ravel) {
   Ravel.registerSimpleParameter('mysql connection pool size', true);
 
   Ravel.on('start', function() {
-    Ravel.Log.l('Using mysql database provider');
+    Ravel.Log.debug('Using mysql database provider');
 
     var pool  = mysql.createPool({
       host     : Ravel.get('mysql host'),
@@ -59,7 +59,7 @@ module.exports = function(Ravel) {
           if (commitErr) {
             connection.rollback(function(rollbackErr){
               connection.release();
-              Ravel.Log.e(commitErr);
+              Ravel.Log.error(commitErr);
               callback(rollbackErr?rollbackErr:commitErr, null);
             });
           } else {
