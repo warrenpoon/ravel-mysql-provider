@@ -1,20 +1,19 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.0.1",
-  "private": true,
-  "author": "Sean McIntyre <smcintyre@xverba.ca>",
+  "version": "0.1.0",
+  "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
     {"name": "Sean McIntyre","email": "smcintyre@xverba.ca"}
   ],
   "main":"ravel-mysql-provider.js",
   "dependencies": {
-    "mysql":"*"
+    "mysql":"2.5.4"
   },
   "devDependencies": {
-    "grunt": "*",
-    "grunt-contrib-jshint":"*",
-    "grunt-contrib-watch" : "*",
-    "jshint-stylish": "*"
+    "grunt": "0.4.5",
+    "grunt-contrib-jshint":"0.11.0",
+    "grunt-contrib-watch" : "0.6.1",
+    "jshint-stylish": "1.0.0"
   }
 }
