@@ -4,8 +4,8 @@
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
-    {"name": "Sean McIntyre","email": "smcintyre@xverba.ca"}
-  ],  
+    {"name": "Sean McIntyre","email": "s.mcintyre@xverba.ca"}
+  ],
   "license":"MIT",
   "repository" :{
     "type" : "git",
