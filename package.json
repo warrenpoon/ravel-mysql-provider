@@ -5,7 +5,12 @@
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
     {"name": "Sean McIntyre","email": "smcintyre@xverba.ca"}
-  ],
+  ],  
+  "license":"MIT",
+  "repository" :{
+    "type" : "git",
+    "url" : "https://github.com/Ghnuberath/ravel.git"
+  },
   "main":"ravel-mysql-provider.js",
   "dependencies": {
     "mysql":"2.5.4"
