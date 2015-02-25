@@ -17,8 +17,7 @@ module.exports = function(Ravel) {
   Ravel.registerSimpleParameter('mysql password', true);
   Ravel.registerSimpleParameter('mysql database name', true);
   Ravel.registerSimpleParameter('mysql connection pool size', true);
-
-  Ravel.on('start', function() {
+  Ravel.once('post init', function() {
     Ravel.Log.debug('Using mysql database provider');
 
     var pool  = mysql.createPool({
