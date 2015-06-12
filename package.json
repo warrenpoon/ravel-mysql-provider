@@ -1,12 +1,16 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
     {"name": "Sean McIntyre","email": "smcintyre@xverba.ca"}
   ],
   "main":"ravel-mysql-provider.js",
+  "repository" :{
+    "type" : "git",
+    "url" : "https://github.com/raveljs/ravel-mysql-provider.git"
+  },
   "dependencies": {
     "mysql":"2.5.4"
   },
