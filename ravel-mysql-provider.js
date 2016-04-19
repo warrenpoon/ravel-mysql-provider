@@ -91,12 +91,12 @@ module.exports = function(ravelInstance, name) {
   ravelInstance.set('database providers', providers);
 
   // required mysql parameters
-  Ravel.registerSimpleParameter(`${instance} host`, true);
-  Ravel.registerSimpleParameter(`${instance} port`, true);
-  Ravel.registerSimpleParameter(`${instance} user`, true);
-  Ravel.registerSimpleParameter(`${instance} password`, true);
-  Ravel.registerSimpleParameter(`${instance} database instance`, true);
-  Ravel.registerSimpleParameter(`${instance} connection pool size`, true);
+  ravelInstance.registerSimpleParameter(`${instance} host`, true);
+  ravelInstance.registerSimpleParameter(`${instance} port`, true);
+  ravelInstance.registerSimpleParameter(`${instance} user`, true);
+  ravelInstance.registerSimpleParameter(`${instance} password`, true);
+  ravelInstance.registerSimpleParameter(`${instance} database instance`, true);
+  ravelInstance.registerSimpleParameter(`${instance} connection pool size`, true);
 
   ravelInstance.on('start', () => {
     ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);

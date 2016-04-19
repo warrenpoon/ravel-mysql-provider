@@ -7,12 +7,16 @@
     {"name": "Sean McIntyre","email": "s.mcintyre@xverba.ca"}
   ],
   "main":"ravel-mysql-provider.js",
+  "license": "MIT",
   "repository" :{
     "type" : "git",
     "url" : "https://github.com/raveljs/ravel-mysql-provider.git"
   },
   "dependencies": {
-    "mysql":"2.10.2"
+    "mysql": "2.10.2"
+  },
+  "peerDependencies": {
+    "ravel": "0.10.x"
   },
   "devDependencies": {
     "eslint": "1.10.3",
