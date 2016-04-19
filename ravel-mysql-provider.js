@@ -14,16 +14,22 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     super(instanceName);
   }
 
-  start() {
+  start(ravelInstance) {
     this.pool = mysql.createPool({
-      host     : Ravel.get(`${this.name} host`),
-      port     : Ravel.get(`${this.name} port`),
-      user     : Ravel.get(`${this.name} user`),
-      password : Ravel.get(`${this.name} password`),
-      database : Ravel.get(`${this.name} database name`),
-      connectionLimit : Ravel.get(`${this.name} connection pool size`),
+      host     : ravelInstance.get(`${this.name} host`),
+      port     : ravelInstance.get(`${this.name} port`),
+      user     : ravelInstance.get(`${this.name} user`),
+      password : ravelInstance.get(`${this.name} password`),
+      database : ravelInstance.get(`${this.name} database name`),
+      connectionLimit : ravelInstance.get(`${this.name} connection pool size`),
       supportBigNumbers : true
     });
+  }
+
+  end() {
+    if (this.pool) {
+      this.pool.end();
+    }
   }
 
   getTransactionConnection() {
@@ -100,11 +106,11 @@ module.exports = function(ravelInstance, name) {
 
   ravelInstance.on('start', () => {
     ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
-    mysqlProvider.start();
+    mysqlProvider.start(ravelInstance);
   });
 
   ravelInstance.on('end', () => {
     ravelInstance.Log.debug(`Shutting down mysql database provider, alias: ${instance}`);
-    mysqlProvider.end();
+    mysqlProvider.end(ravelInstance);
   });
 };
