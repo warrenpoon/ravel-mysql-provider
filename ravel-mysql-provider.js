@@ -106,7 +106,13 @@ module.exports = function(ravelInstance, name) {
 
   ravelInstance.on('start', () => {
     ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
-    mysqlProvider.start(ravelInstance);
+    try {
+      mysqlProvider.start(ravelInstance);
+    } catch (err) {
+      // EventEmitter swallows error otherwise
+      console.error(err.stack);
+      process.exit(1);
+    }
   });
 
   ravelInstance.on('end', () => {
