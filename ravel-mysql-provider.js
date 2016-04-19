@@ -1,73 +1,110 @@
 'use strict';
 
-var mysql = require('mysql');
+const mysql = require('mysql');
+const Ravel = require('ravel');
 
-module.exports = function(Ravel) {
-  var MySQLProvider = new Ravel.DatabaseProvider('mysql');
+/**
+ * A Ravel DatabaseProvider for MySQL
+ */
+class MySQLProvider extends Ravel.DatabaseProvider {
+  /**
+   * @param ${String} instanceName the name to alias this MySQLProvider under. 'mysql' by default.
+   */
+  constructor(instanceName) {
+    super(instanceName);
+  }
 
-  //register this as a database provider
-  var providers = Ravel.get('database providers');
-  providers.push(MySQLProvider);
-  Ravel.set('database providers', providers);
-
-  //required mysql parameters
-  Ravel.registerSimpleParameter('mysql host', true);
-  Ravel.registerSimpleParameter('mysql port', true);
-  Ravel.registerSimpleParameter('mysql user', true);
-  Ravel.registerSimpleParameter('mysql password', true);
-  Ravel.registerSimpleParameter('mysql database name', true);
-  Ravel.registerSimpleParameter('mysql connection pool size', true);
-
-  Ravel.on('start', function() {
-    Ravel.Log.debug('Using mysql database provider');
-
-    var pool  = mysql.createPool({
-      host     : Ravel.get('mysql host'),
-      port     : Ravel.get('mysql port'),
-      user     : Ravel.get('mysql user'),
-      password : Ravel.get('mysql password'),
-      database : Ravel.get('mysql database name'),
-      connectionLimit : Ravel.get('mysql connection pool size'),
+  start() {
+    this.pool = mysql.createPool({
+      host     : Ravel.get(`${this.name} host`),
+      port     : Ravel.get(`${this.name} port`),
+      user     : Ravel.get(`${this.name} user`),
+      password : Ravel.get(`${this.name} password`),
+      database : Ravel.get(`${this.name} database name`),
+      connectionLimit : Ravel.get(`${this.name} connection pool size`),
       supportBigNumbers : true
     });
+  }
 
-    MySQLProvider.getTransactionConnection = function(callback) {
-      pool.getConnection(function(connectionErr, connection) {
+  getTransactionConnection() {
+    return new Promise((resolve, reject) => {
+      this.pool.getConnection(function(connectionErr, connection) {
         if (connectionErr) {
-          callback(connectionErr, null);
+          reject(connectionErr);
         } else {
           connection.beginTransaction(function(transactionErr) {
             if (transactionErr) {
-              callback(transactionErr, null);
+              reject(transactionErr);
               connection.release();
             } else {
-              callback(transactionErr, connection);
+              resolve(connection);
             }
           });
         }
       });
-    };
+    });
+  }
 
-    MySQLProvider.exitTransaction = function(connection, shouldCommit, callback) {
+  exitTransaction(connection, shouldCommit) {
+    const log = this.log;
+    return new Promise((resolve, reject) => {
       if (!shouldCommit) {
         connection.rollback(function(rollbackErr) {
           connection.release();
-          callback(rollbackErr, null);
+          if (rollbackErr) {
+            reject(rollbackErr);
+          } else  {
+            resolve();
+          }
         });
       } else {
         connection.commit(function(commitErr) {
           if (commitErr) {
             connection.rollback(function(rollbackErr){
               connection.release();
-              Ravel.Log.error(commitErr);
-              callback(rollbackErr?rollbackErr:commitErr, null);
+              log.error(commitErr);
+              reject(rollbackErr?rollbackErr:commitErr);
             });
           } else {
             connection.release();
-            callback(null, null);
+            resolve();
           }
         });
       }
-    };
+    });
+  }
+}
+
+/**
+ * Add a new MySQLProvider to a Ravel instance
+ * More than one can be used at the same time, via the instance argument
+ * @param {Object} ravelInstance a reference to a Ravel instance
+ * @param {String | undefined} a unique name for this MySQLProvider, if you intend to use more than one simultaneously
+ *
+ */
+module.exports = function(ravelInstance, name) {
+  const instance = name ? name.trim() : 'mysql';
+  const mysqlProvider = new MySQLProvider(instance);
+  // register mysql as a database provider
+  const providers = ravelInstance.get('database providers');
+  providers.push(mysqlProvider);
+  ravelInstance.set('database providers', providers);
+
+  // required mysql parameters
+  Ravel.registerSimpleParameter(`${instance} host`, true);
+  Ravel.registerSimpleParameter(`${instance} port`, true);
+  Ravel.registerSimpleParameter(`${instance} user`, true);
+  Ravel.registerSimpleParameter(`${instance} password`, true);
+  Ravel.registerSimpleParameter(`${instance} database instance`, true);
+  Ravel.registerSimpleParameter(`${instance} connection pool size`, true);
+
+  ravelInstance.on('start', () => {
+    ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
+    mysqlProvider.start();
+  });
+
+  ravelInstance.on('end', () => {
+    ravelInstance.Log.debug(`Shutting down mysql database provider, alias: ${instance}`);
+    mysqlProvider.end();
   });
 };
