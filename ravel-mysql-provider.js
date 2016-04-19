@@ -4,6 +4,18 @@ const mysql = require('mysql');
 const Ravel = require('ravel');
 
 /**
+ * Default options for node-mysql
+ */
+const DEFAULT_OPTIONS = {
+  host: 'localhost',
+  port: 3306,
+  database: 'mysql',
+  connectionLimit: 10,
+  supportBigNumbers: true,
+  bigNumberStrings: true
+};
+
+/**
  * A Ravel DatabaseProvider for MySQL
  */
 class MySQLProvider extends Ravel.DatabaseProvider {
@@ -15,15 +27,11 @@ class MySQLProvider extends Ravel.DatabaseProvider {
   }
 
   start(ravelInstance) {
-    this.pool = mysql.createPool({
-      host     : ravelInstance.get(`${this.name} host`),
-      port     : ravelInstance.get(`${this.name} port`),
-      user     : ravelInstance.get(`${this.name} user`),
-      password : ravelInstance.get(`${this.name} password`),
-      database : ravelInstance.get(`${this.name} database name`),
-      connectionLimit : ravelInstance.get(`${this.name} connection pool size`),
-      supportBigNumbers : true
-    });
+    // overlay user options onto defaults
+    const ops = {};
+    Object.assign(ops, DEFAULT_OPTIONS);
+    Object.assign(ops, ravelInstance.get(`${this.name} mysql options`));
+    this.pool = mysql.createPool(ops);
   }
 
   end() {
@@ -97,12 +105,7 @@ module.exports = function(ravelInstance, name) {
   ravelInstance.set('database providers', providers);
 
   // required mysql parameters
-  ravelInstance.registerSimpleParameter(`${instance} host`, true);
-  ravelInstance.registerSimpleParameter(`${instance} port`, true);
-  ravelInstance.registerSimpleParameter(`${instance} user`, true);
-  ravelInstance.registerSimpleParameter(`${instance} password`, true);
-  ravelInstance.registerSimpleParameter(`${instance} database instance`, true);
-  ravelInstance.registerSimpleParameter(`${instance} connection pool size`, true);
+  ravelInstance.registerSimpleParameter(`${instance} mysql options`, true, DEFAULT_OPTIONS);
 
   ravelInstance.on('start', () => {
     ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
