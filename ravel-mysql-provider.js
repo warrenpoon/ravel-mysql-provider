@@ -30,7 +30,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     // overlay user options onto defaults
     const ops = {};
     Object.assign(ops, DEFAULT_OPTIONS);
-    Object.assign(ops, ravelInstance.get(`${this.name} mysql options`));
+    Object.assign(ops, ravelInstance.get(`${this.name} options`));
     this.pool = mysql.createPool(ops);
   }
 
@@ -105,7 +105,7 @@ module.exports = function(ravelInstance, name) {
   ravelInstance.set('database providers', providers);
 
   // required mysql parameters
-  ravelInstance.registerSimpleParameter(`${instance} mysql options`, true, DEFAULT_OPTIONS);
+  ravelInstance.registerSimpleParameter(`${instance} options`, true, DEFAULT_OPTIONS);
 
   ravelInstance.on('start', () => {
     ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
