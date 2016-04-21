@@ -107,7 +107,7 @@ module.exports = function(ravelInstance, name) {
   // required mysql parameters
   ravelInstance.registerSimpleParameter(`${instance} options`, true, DEFAULT_OPTIONS);
 
-  ravelInstance.on('start', () => {
+  ravelInstance.once('pre listen', () => {
     ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
     try {
       mysqlProvider.start(ravelInstance);
@@ -118,7 +118,7 @@ module.exports = function(ravelInstance, name) {
     }
   });
 
-  ravelInstance.on('end', () => {
+  ravelInstance.once('end', () => {
     ravelInstance.Log.debug(`Shutting down mysql database provider, alias: ${instance}`);
     mysqlProvider.end(ravelInstance);
   });
