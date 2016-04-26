@@ -49,7 +49,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
           connection.beginTransaction(function(transactionErr) {
             if (transactionErr) {
               reject(transactionErr);
-              connection.release();
+              try { connection.release(); } catch(e) { /* do nothing */ }
             } else {
               resolve(connection);
             }
@@ -64,7 +64,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     return new Promise((resolve, reject) => {
       if (!shouldCommit) {
         connection.rollback(function(rollbackErr) {
-          connection.release();
+          try { connection.release(); } catch(e) { /* do nothing */ }
           if (rollbackErr) {
             reject(rollbackErr);
           } else  {
@@ -75,12 +75,12 @@ class MySQLProvider extends Ravel.DatabaseProvider {
         connection.commit(function(commitErr) {
           if (commitErr) {
             connection.rollback(function(rollbackErr){
-              connection.release();
+              try { connection.release(); } catch(e) { /* do nothing */ }
               log.error(commitErr);
               reject(rollbackErr?rollbackErr:commitErr);
             });
           } else {
-            connection.release();
+            try { connection.release(); } catch(e) { /* do nothing */ }
             resolve();
           }
         });
