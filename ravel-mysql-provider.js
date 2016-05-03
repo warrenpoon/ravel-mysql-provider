@@ -51,6 +51,19 @@ class MySQLProvider extends Ravel.DatabaseProvider {
               reject(transactionErr);
               try { connection.release(); } catch(e) { /* do nothing */ }
             } else {
+              // add custom format parser
+              connection.config.queryFormat = function (query, values) {
+                if (!values) return query;
+                // replace :* formatted parameters
+                query = query.replace(/\:(\w+)/g, function (txt, key) {
+                  if (values.hasOwnProperty(key)) {
+                    return this.escape(values[key]);
+                  }
+                  return txt;
+                }.bind(this)); 
+                // regular parsing 
+                return mysql.format(query, values);  
+              };  
               resolve(connection);
             }
           });
