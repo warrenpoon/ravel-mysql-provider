@@ -53,17 +53,17 @@ class MySQLProvider extends Ravel.DatabaseProvider {
             } else {
               // add custom format parser
               connection.config.queryFormat = function (query, values) {
-                if (!values) return query;
+                if (!values) {return query;}
                 // replace :* formatted parameters
                 query = query.replace(/\:(\w+)/g, function (txt, key) {
                   if (values.hasOwnProperty(key)) {
                     return this.escape(values[key]);
                   }
                   return txt;
-                }.bind(this)); 
-                // regular parsing 
-                return mysql.format(query, values);  
-              };  
+                }.bind(this));
+                // regular parsing
+                return mysql.format(query, values);
+              };
               resolve(connection);
             }
           });
@@ -121,7 +121,7 @@ module.exports = function(ravelInstance, name) {
   ravelInstance.registerSimpleParameter(`${instance} options`, true, DEFAULT_OPTIONS);
 
   ravelInstance.once('pre listen', () => {
-    ravelInstance.Log.debug(`Using mysql database provider, alias: ${instance}`);
+    ravelInstance.log.debug(`Using mysql database provider, alias: ${instance}`);
     try {
       mysqlProvider.start(ravelInstance);
     } catch (err) {
@@ -132,7 +132,7 @@ module.exports = function(ravelInstance, name) {
   });
 
   ravelInstance.once('end', () => {
-    ravelInstance.Log.debug(`Shutting down mysql database provider, alias: ${instance}`);
+    ravelInstance.log.debug(`Shutting down mysql database provider, alias: ${instance}`);
     mysqlProvider.end(ravelInstance);
   });
 };
