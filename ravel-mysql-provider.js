@@ -32,6 +32,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     Object.assign(ops, DEFAULT_OPTIONS);
     Object.assign(ops, ravelInstance.get(`${this.name} options`));
     this.pool = mysql.createPool(ops);
+    this.ravelInstance = ravelInstance;
   }
 
   end() {
@@ -46,6 +47,16 @@ class MySQLProvider extends Ravel.DatabaseProvider {
         if (connectionErr) {
           reject(connectionErr);
         } else {
+          // from https://github.com/felixge/node-mysql/issues/832
+          const logger = this.ravelInstance.log;
+          const del = connection._protocol._delegateError;
+          connection._protocol._delegateError = function(err, sequence){
+            if (err.fatal) {
+              logger.trace(`fatal error: ${err.message}`);
+            }
+            return del.call(this, err, sequence);
+          };
+          // begin transaction
           connection.beginTransaction(function(transactionErr) {
             if (transactionErr) {
               reject(transactionErr);
