@@ -1,6 +1,6 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [

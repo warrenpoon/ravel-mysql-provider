@@ -32,12 +32,27 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     Object.assign(ops, DEFAULT_OPTIONS);
     Object.assign(ops, ravelInstance.get(`${this.name} options`));
     this.pool = mysql.createPool(ops);
-    this.ravelInstance = ravelInstance;
   }
 
   end() {
     if (this.pool) {
       this.pool.end();
+    }
+  }
+
+  release(connection, err) {
+    try {
+      // if we know thisis a fatal error, don't return the connection to the pool
+      if (err && err.fatal) {
+        connection.destroy();
+      } else  {
+        // check if the connection is still good with a ping and do the right thing
+        connection.ping(function (e) {
+          e && e.fatal ? connection.destroy() : connection.release();
+        });
+      }
+    } catch(e) {
+      this.log.trace(e.stack);
     }
   }
 
@@ -49,11 +64,10 @@ class MySQLProvider extends Ravel.DatabaseProvider {
           reject(connectionErr);
         } else {
           // from https://github.com/felixge/node-mysql/issues/832
-          const logger = self.ravelInstance.log;
           const del = connection._protocol._delegateError;
           connection._protocol._delegateError = function(err, sequence){
             if (err.fatal) {
-              logger.trace(`fatal error: ${err.message}`);
+              self.log.trace(`fatal error: ${err.message}`);
             }
             return del.call(this, err, sequence);
           };
@@ -61,7 +75,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
           connection.beginTransaction(function(transactionErr) {
             if (transactionErr) {
               reject(transactionErr);
-              try { connection.release(); } catch(e) { /* do nothing */ }
+              self.release(connection, transactionErr);
             } else {
               // add custom format parser
               connection.config.queryFormat = function (query, values) {
@@ -85,11 +99,12 @@ class MySQLProvider extends Ravel.DatabaseProvider {
   }
 
   exitTransaction(connection, shouldCommit) {
+    const self = this;
     const log = this.log;
     return new Promise((resolve, reject) => {
       if (!shouldCommit) {
         connection.rollback(function(rollbackErr) {
-          try { connection.release(); } catch(e) { /* do nothing */ }
+          self.release(connection, rollbackErr);
           if (rollbackErr) {
             reject(rollbackErr);
           } else  {
@@ -100,12 +115,12 @@ class MySQLProvider extends Ravel.DatabaseProvider {
         connection.commit(function(commitErr) {
           if (commitErr) {
             connection.rollback(function(rollbackErr){
-              try { connection.release(); } catch(e) { /* do nothing */ }
+              self.release(connection, rollbackErr);
               log.error(commitErr);
               reject(rollbackErr?rollbackErr:commitErr);
             });
           } else {
-            try { connection.release(); } catch(e) { /* do nothing */ }
+            self.release(connection);
             resolve();
           }
         });
