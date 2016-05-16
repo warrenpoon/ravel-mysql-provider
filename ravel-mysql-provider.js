@@ -32,6 +32,35 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     Object.assign(ops, DEFAULT_OPTIONS);
     Object.assign(ops, ravelInstance.get(`${this.name} options`));
     this.pool = mysql.createPool(ops);
+
+    // override getConnection function so that it always gets a good connection
+    const self = this;
+    const orig = this.pool.getConnection.bind(this.pool);
+    const getConnectionHelper = function(cb, tries) {
+      if (tries > ops.connectionLimit+1) {
+        cb (new Error(`Could not retrieve a connection for ${self.name}. Maximum retries reached.`));
+      } else {
+        orig((e, c) => {
+          // if we got an error and no connection, cb immediately
+          if (e && !c) {
+            cb(e);
+          } else {
+            // otherwise, test connection
+            c.ping((pingErr) => {
+              if (pingErr) {
+                // try again!
+                getConnectionHelper(cb, tries+1);
+              } else {
+                cb(null, c);
+              }
+            });
+          }
+        });
+      }
+    };
+    this.pool.getConnection = function(cb) {
+      getConnectionHelper(cb, 0);
+    };
   }
 
   end() {
@@ -41,18 +70,18 @@ class MySQLProvider extends Ravel.DatabaseProvider {
   }
 
   release(connection, err) {
-    try {
-      // if we know thisis a fatal error, don't return the connection to the pool
-      if (err && err.fatal) {
-        connection.destroy();
-      } else  {
-        // check if the connection is still good with a ping and do the right thing
-        connection.ping(function (e) {
-          e && e.fatal ? connection.destroy() : connection.release();
-        });
-      }
-    } catch(e) {
-      this.log.trace(e.stack);
+    // if we know thisis a fatal error, don't return the connection to the pool
+    if (err && err.fatal) {
+      try {connection.destroy();} catch (e) { /* don't worry about double destroys*/ }
+    } else {
+      // check if the connection is still good with a ping and do the right thing
+      connection.ping(function (e) {
+        if (e && e.fatal) {
+          try {connection.destroy();} catch (e2) {/* don't worry about double destroys*/}
+        } else {
+          try {connection.release();} catch (e2) {/* don't worry about double releases*/}
+        }
+      });
     }
   }
 
