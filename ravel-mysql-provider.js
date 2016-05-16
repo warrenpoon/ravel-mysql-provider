@@ -135,7 +135,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
         connection.rollback(function(rollbackErr) {
           self.release(connection, rollbackErr);
           if (rollbackErr) {
-            reject(rollbackErr);
+            log.trace(rollbackErr);
           } else  {
             resolve();
           }
@@ -143,11 +143,16 @@ class MySQLProvider extends Ravel.DatabaseProvider {
       } else {
         connection.commit(function(commitErr) {
           if (commitErr) {
-            connection.rollback(function(rollbackErr){
-              self.release(connection, rollbackErr);
-              log.error(commitErr);
-              reject(rollbackErr?rollbackErr:commitErr);
-            });
+            log.error(commitErr);
+            if (!commitErr.fatal) {
+              connection.rollback(function(rollbackErr){
+                self.release(connection, rollbackErr);
+                reject(rollbackErr?rollbackErr:commitErr);
+              });
+            } else  {
+              self.release(connection, commitErr);
+              reject(commitErr);
+            }
           } else {
             self.release(connection);
             resolve();
