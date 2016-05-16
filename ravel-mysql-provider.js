@@ -42,13 +42,14 @@ class MySQLProvider extends Ravel.DatabaseProvider {
   }
 
   getTransactionConnection() {
+    const self = this;
     return new Promise((resolve, reject) => {
       this.pool.getConnection(function(connectionErr, connection) {
         if (connectionErr) {
           reject(connectionErr);
         } else {
           // from https://github.com/felixge/node-mysql/issues/832
-          const logger = this.ravelInstance.log;
+          const logger = self.ravelInstance.log;
           const del = connection._protocol._delegateError;
           connection._protocol._delegateError = function(err, sequence){
             if (err.fatal) {
