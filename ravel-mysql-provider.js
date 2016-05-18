@@ -1,6 +1,7 @@
 'use strict';
 
 const mysql = require('mysql');
+const Pool = require('generic-pool').Pool;
 const Ravel = require('ravel');
 
 /**
@@ -10,13 +11,17 @@ const DEFAULT_OPTIONS = {
   host: 'localhost',
   port: 3306,
   database: 'mysql',
-  connectionLimit: 10,
   supportBigNumbers: true,
-  bigNumberStrings: true
+  bigNumberStrings: true,
+  connectionLimit: 10,
+  idleTimeoutMillis: 30000
 };
 
 /**
  * A Ravel DatabaseProvider for MySQL
+ * We use generic-pool instead of node-mysql's built-in pool
+ * because it's more flexible and less completely insane when
+ * it comes to timeouts.
  */
 class MySQLProvider extends Ravel.DatabaseProvider {
   /**
@@ -31,75 +36,61 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     const ops = {};
     Object.assign(ops, DEFAULT_OPTIONS);
     Object.assign(ops, ravelInstance.get(`${this.name} options`));
-    this.pool = mysql.createPool(ops);
-
-    // override getConnection function so that it always gets a good connection
-    const self = this;
-    const orig = this.pool.getConnection.bind(this.pool);
-    const getConnectionHelper = function(cb, tries) {
-      if (tries > ops.connectionLimit+1) {
-        cb (new Error(`Could not retrieve a connection for ${self.name}. Maximum retries reached.`));
-      } else {
-        orig((e, c) => {
-          // if we got an error and no connection, cb immediately
-          if (e && !c) {
-            cb(e);
+    const pool = new Pool({
+      name: `${this.name} pool`,
+      create: function(callback) {
+        const conn = mysql.createConnection(ops);
+        conn.connect((err) =>  {
+          if (err) {
+            callback(err, null);
           } else {
-            // otherwise, test connection
-            c.ping((pingErr) => {
-              if (pingErr) {
-                // try again!
-                getConnectionHelper(cb, tries+1);
-              } else {
-                cb(null, c);
-              }
-            });
+            callback(null, conn);
           }
         });
-      }
-    };
-    this.pool.getConnection = function(cb) {
-      getConnectionHelper(cb, 0);
-    };
+        // catch timeouts
+        conn.once('error', () => {
+          pool.destroy(conn);
+        });
+      },
+      destroy: function(conn) {
+        try {conn.destroy();} catch (e) { /* don't worry about destroy failure*/ }
+      },
+      // this doesn't seem to work properly yet. results in multiple destroys.
+      // validateAsync: function(conn, callback) {
+      //   conn.ping((err) => {
+      //     try {callback(err?true:false);} catch(e) {/* don't worry about double destroys? */}
+      //   });
+      // },
+      min: 2,
+      max: ops.connectionLimit,
+      idleTimeoutMillis: ops.idleTimeoutMillis
+    });
+    this.pool = pool;
   }
 
   end() {
     if (this.pool) {
-      this.pool.end();
+      this.pool.drain(() => this.pool.destroyAllNow());
     }
   }
 
   release(connection, err) {
     // if we know thisis a fatal error, don't return the connection to the pool
     if (err && err.fatal) {
-      try {connection.destroy();} catch (e) { /* don't worry about double destroys*/ }
+      this.log.trace('Destroying fatally-errored connection.');
+      try {this.pool.destroy(connection);} catch(e) {/*don't worry about double destroys for now*/}
     } else {
-      // check if the connection is still good with a ping and do the right thing
-      connection.ping(function (e) {
-        if (e && e.fatal) {
-          try {connection.destroy();} catch (e2) {/* don't worry about double destroys*/}
-        } else {
-          try {connection.release();} catch (e2) {/* don't worry about double releases*/}
-        }
-      });
+      try {this.pool.release(connection);} catch(e) {/*don't worry about double releases for now*/}
     }
   }
 
   getTransactionConnection() {
     const self = this;
     return new Promise((resolve, reject) => {
-      this.pool.getConnection(function(connectionErr, connection) {
+      this.pool.acquire(function(connectionErr, connection) {
         if (connectionErr) {
           reject(connectionErr);
         } else {
-          // from https://github.com/felixge/node-mysql/issues/832
-          const del = connection._protocol._delegateError;
-          connection._protocol._delegateError = function(err, sequence){
-            if (err.fatal) {
-              self.log.trace(`fatal error: ${err.message}`);
-            }
-            return del.call(this, err, sequence);
-          };
           // begin transaction
           connection.beginTransaction(function(transactionErr) {
             if (transactionErr) {
@@ -132,7 +123,7 @@ class MySQLProvider extends Ravel.DatabaseProvider {
     const log = this.log;
     return new Promise((resolve, reject) => {
       if (!shouldCommit) {
-        connection.rollback(function(rollbackErr) {
+        connection.rollback((rollbackErr) => {
           self.release(connection, rollbackErr);
           if (rollbackErr) {
             log.trace(rollbackErr);
@@ -141,11 +132,11 @@ class MySQLProvider extends Ravel.DatabaseProvider {
           }
         });
       } else {
-        connection.commit(function(commitErr) {
+        connection.commit((commitErr) => {
           if (commitErr) {
-            log.error(commitErr);
+            log.trace(commitErr);
             if (!commitErr.fatal) {
-              connection.rollback(function(rollbackErr){
+              connection.rollback((rollbackErr) => {
                 self.release(connection, rollbackErr);
                 reject(rollbackErr?rollbackErr:commitErr);
               });
