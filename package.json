@@ -1,6 +1,6 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.13.6",
+  "version": "0.14.0",
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
@@ -17,7 +17,7 @@
     "generic-pool": "2.4.2"
   },
   "peerDependencies": {
-    "ravel": "0.13.x"
+    "ravel": "0.14.x"
   },
   "devDependencies": {
     "eslint": "1.10.3",

@@ -170,7 +170,7 @@ module.exports = function(ravelInstance, name) {
   ravelInstance.set('database providers', providers);
 
   // required mysql parameters
-  ravelInstance.registerSimpleParameter(`${instance} options`, true, DEFAULT_OPTIONS);
+  ravelInstance.registerParameter(`${instance} options`, true, DEFAULT_OPTIONS);
 
   ravelInstance.once('pre listen', () => {
     ravelInstance.log.debug(`Using mysql database provider, alias: ${instance}`);
