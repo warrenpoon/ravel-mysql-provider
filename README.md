@@ -7,8 +7,10 @@
 *app.js*
 ```javascript
 const app = new require('ravel')();
-require('ravel-mysql-provider')(app);
-
+const MySQLProvider = require('ravel-mysql-provider');
+new MySQLProvider(app);
+// ... other providers and parameters
+app.init();
 // ... the rest of your Ravel app
 ```
 
@@ -40,9 +42,12 @@ All options for a `node-mysql` connection are supported, and are documented [her
 *app.js*
 ```javascript
 const app = new require('ravel')();
-require('ravel-mysql-provider')(app, 'first mysql');
-require('ravel-mysql-provider')(app, 'second mysql');
-//...
+const MySQLProvider = require('ravel-mysql-provider');
+new MySQLProvider(app, 'first mysql');
+new MySQLProvider(app, 'second mysql');
+// ... other providers and parameters
+app.init();
+// ... the rest of your app
 ```
 
 *.ravelrc*
