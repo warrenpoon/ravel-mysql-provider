@@ -21,13 +21,15 @@ const DEFAULT_OPTIONS = {
  */
 class RethinkdbProvider extends Ravel.DatabaseProvider {
   /**
+   * @param {Ravel} ravelInstance an instance of a Ravel application
    * @param ${String} instanceName the name to alias this rethinkdbProvider under. 'rethinkdb' by default.
    */
-  constructor(instanceName) {
+  constructor(ravelInstance, instanceName = 'rethinkdb') {
     super(instanceName);
+    ravelInstance.registerSimpleParameter(`${instanceName} options`, true, DEFAULT_OPTIONS);
   }
 
-  start(ravelInstance) {
+  prelisten(ravelInstance) {
     // overlay user options onto defaults
     const ops = {};
     Object.assign(ops, DEFAULT_OPTIONS);
@@ -64,32 +66,4 @@ class RethinkdbProvider extends Ravel.DatabaseProvider {
   }
 }
 
-/**
- * Add a new RethinkdbProvider to a Ravel instance
- * More than one can be used at the same time, via the instance argument
- * @param {Object} ravelInstance a reference to a Ravel instance
- * @param {String | undefined} a unique name for this rethinkdbProvider, if you intend to use more than one simultaneously
- *
- */
-module.exports = function(ravelInstance, name) {
-  const instance = name ? name.trim() : 'rethinkdb';
-  const rethinkdbProvider = new RethinkdbProvider(instance);
-  // register rethinkdb as a database provider
-  const providers = ravelInstance.get('database providers');
-  providers.push(rethinkdbProvider);
-  ravelInstance.set('database providers', providers);
-
-  // required rethinkdb parameters
-  ravelInstance.registerSimpleParameter(`${instance} options`, true, DEFAULT_OPTIONS);
-
-  ravelInstance.once('pre listen', () => {
-    ravelInstance.log.debug(`Using mysql database provider, alias: ${instance}`);
-    try {
-      rethinkdbProvider.start(ravelInstance);
-    } catch (err) {
-      // EventEmitter swallows error otherwise
-      console.error(err.stack);
-      process.exit(1);
-    }
-  });
-};
+module.exports = RethinkdbProvider;
