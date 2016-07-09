@@ -44,7 +44,6 @@ class RethinkdbProvider extends Ravel.DatabaseProvider {
         if (connectionErr) {
           reject(connectionErr);
         } else {
-          this.connection = connection;
           resolve(connection);
         }
       });
@@ -56,13 +55,18 @@ class RethinkdbProvider extends Ravel.DatabaseProvider {
      * Rollback the transaction iff finalErr !== null.
      *
      * @param {Object} connection A connection object which was used throughout the transaction
-     * @param {Boolean} shouldCommit If true, commit, otherwise rollback
+     * @param {Boolean} shouldCommit If true, commit, otherwise rollback.  This provider does not support rollback.
      * @return {Promise} resolved, or rejected if there was an error while closing the connection.
      */
-  exitTransaction(connection, shouldCommit) {  //eslint-disable-line no-unused-vars
-    if (this.connection) {
-      this.connection.close();
-    }
+  exitTransaction(connection/*, shouldCommit*/) {
+    return new Promise((resolve, reject) => {
+      try {
+        connection.close();
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 }
 
