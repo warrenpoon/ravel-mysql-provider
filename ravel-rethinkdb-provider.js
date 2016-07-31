@@ -25,8 +25,8 @@ class RethinkdbProvider extends Ravel.DatabaseProvider {
    * @param ${String} instanceName the name to alias this rethinkdbProvider under. 'rethinkdb' by default.
    */
   constructor(ravelInstance, instanceName = 'rethinkdb') {
-    super(instanceName);
-    ravelInstance.registerSimpleParameter(`${instanceName} options`, true, DEFAULT_OPTIONS);
+    super(ravelInstance, instanceName);
+    ravelInstance.registerParameter(`${instanceName} options`, true, DEFAULT_OPTIONS);
   }
 
   prelisten(ravelInstance) {
