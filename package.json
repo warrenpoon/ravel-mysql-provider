@@ -6,11 +6,20 @@
   "contributors": [
     {"name": "Sean McIntyre","email": "s.mcintyre@xverba.ca"}
   ],
-  "main":"ravel-mysql-provider.js",
+  "main":"lib/ravel-mysql-provider.js",
   "license": "MIT",
   "repository" :{
     "type" : "git",
     "url" : "https://github.com/raveljs/ravel-mysql-provider.git"
+  },
+  "scripts": {
+    "clean": "gulp clean",
+    "docs":"gulp docs",
+    "watch":"gulp watch",
+    "test":"gulp test",
+    "test-no-cov":"gulp test-no-cov",
+    "debug":"node debug $(which gulp) test-no-cov",
+    "debug-remote":"node --debug-brk=5858 $(which gulp) test-no-cov"
   },
   "dependencies": {
     "mysql": "2.10.2",
@@ -20,9 +29,33 @@
     "ravel": "0.17.x"
   },
   "devDependencies": {
-    "eslint": "1.10.3",
-    "gulp": "3.9.0",
-    "gulp-eslint": "1.1.1",
-    "gulp-load-plugins": "1.2.0"
+    "chai":"3.5.0",
+    "mocha": "2.5.3",
+    "mocha-lcov-reporter":"1.2.0",
+    "mockery":"1.6.2",
+    "supertest":"1.2.0",
+    "eslint": "2.8.0",
+    "redis-mock":"0.5.2",
+    "ravel": "^0.17.0",
+    "sinon":"1.17.3",
+    "sinon-chai":"2.8.0",
+    "upath": "0.1.7",
+
+    "codeclimate-test-reporter": "0.3.1",
+    "del": "2.2.0",
+    "gulp": "3.9.1",
+    "gulp-env": "0.4.0",
+    "istanbul": "0.4.3",
+    "gulp-istanbul": "0.10.4",
+    "gulp-eslint": "2.0.0",
+    "gulp-load-plugins": "1.2.2",
+    "gulp-mocha": "2.2.0",
+    "gulp-open": "2.0.0",
+
+    "gulp-sourcemaps": "1.6.0",
+    "gulp-babel":"6.1.2",
+    "babel":"6.5.2",
+    "babel-eslint": "6.0.4",
+    "babel-plugin-transform-decorators-legacy": "1.3.4"
   }
 }
