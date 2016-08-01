@@ -40,7 +40,7 @@ class RethinkdbProvider extends Ravel.DatabaseProvider {
 
   getTransactionConnection() {
     return new Promise((resolve, reject) => {
-      rethinkdb.connect(this.ops, function(connectionErr, connection) {
+      rethinkdb.connect(this.connectionOptions, function(connectionErr, connection) {
         if (connectionErr) {
           reject(connectionErr);
         } else {
