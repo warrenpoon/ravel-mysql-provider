@@ -27,6 +27,7 @@ describe('Ravel MySQLProvider integration test', () => {
     transaction = Routes.transaction;
     mockery.registerMock('redis', redis);
     app = new Ravel();
+    app.set('log level', app.log.NONE);
     new (require('../lib/ravel-mysql-provider'))(app); // eslint-disable-line new-cap, no-new
     app.set('mysql options', {
       user: 'root',
