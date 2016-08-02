@@ -2,6 +2,8 @@
 
 > Ravel DatabaseProvider for MySQL
 
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/raveljs/ravel-mysql-provider/master/LICENSE) [![npm version](https://badge.fury.io/js/ravel-mysql-provider.svg)](http://badge.fury.io/js/ravel-mysql-provider) [![Dependency Status](https://david-dm.org/raveljs/ravel-mysql-provider.svg)](https://david-dm.org/raveljs/ravel-mysql-provider) [![npm](https://img.shields.io/npm/dm/ravel.svg?maxAge=2592000)](https://www.npmjs.com/package/ravel) [![Build Status](https://travis-ci.org/raveljs/ravel-mysql-provider.svg?branch=master)](https://travis-ci.org/raveljs/ravel-mysql-provider) [![Code Climate](https://codeclimate.com/github/raveljs/ravel-mysql-provider/badges/gpa.svg)](https://codeclimate.com/github/raveljs/ravel-mysql-provider) [![Test Coverage](https://codeclimate.com/github/raveljs/ravel-mysql-provider/badges/coverage.svg)](https://codeclimate.com/github/raveljs/ravel-mysql-provider/coverage)
+
 ## Example usage:
 
 *app.js*
