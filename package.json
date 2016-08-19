@@ -18,6 +18,7 @@
     "watch":"gulp watch",
     "test":"gulp test",
     "test-no-cov":"gulp test-no-cov",
+    "show-coverage":"gulp show-coverage",
     "debug":"node debug $(which gulp) test-no-cov",
     "debug-remote":"node --debug-brk=5858 $(which gulp) test-no-cov"
   },
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "chai":"3.5.0",
+    "chai-as-promised":"5.3.0",
     "mocha": "2.5.3",
     "mocha-lcov-reporter":"1.2.0",
     "mockery":"1.6.2",

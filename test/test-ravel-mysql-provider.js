@@ -2,16 +2,15 @@
 
 const chai = require('chai');
 const expect = chai.expect;
+chai.use(require('chai-as-promised'));
 const sinon = require('sinon');
 chai.use(require('sinon-chai'));
-const redis = require('redis-mock');
-const request = require('supertest');
 const mockery = require('mockery');
-const upath = require('upath');
+const redis = require('redis-mock');
 
-let Ravel, Routes, mapping, transaction, app;
+let Ravel, app;
 
-describe('Ravel MySQLProvider integration test', () => {
+describe('Ravel MySQLProvider', () => {
   beforeEach((done) => {
     process.removeAllListeners('unhandledRejection');
     //enable mockery
@@ -20,19 +19,10 @@ describe('Ravel MySQLProvider integration test', () => {
       warnOnReplace: false,
       warnOnUnregistered: false
     });
-    // scaffold basic Ravel app
-    Ravel = require('ravel');
-    Routes = Ravel.Routes;
-    mapping = Routes.mapping;
-    transaction = Routes.transaction;
     mockery.registerMock('redis', redis);
+    Ravel = require('ravel');
     app = new Ravel();
     app.set('log level', app.log.NONE);
-    new (require('../lib/ravel-mysql-provider'))(app); // eslint-disable-line new-cap, no-new
-    app.set('mysql options', {
-      user: 'root',
-      password: 'password'
-    });
     app.set('keygrip keys', ['mysecret']);
 
     done();
@@ -42,75 +32,178 @@ describe('Ravel MySQLProvider integration test', () => {
     process.removeAllListeners('unhandledRejection');
     mockery.deregisterAll();
     mockery.disable();
+    app.close();
     done();
   });
 
-  it('should provide clients with a connection to query an existing MySQL database', (done) => {
-    class TestRoutes extends Routes {
-      constructor() {
-        super('/');
-      }
 
-      @transaction
-      @mapping(Routes.GET, 'test')
-      testHandler(ctx) {
-        expect(ctx).to.have.a.property('transaction').that.is.an('object');
-        expect(ctx.transaction).to.have.a.property('mysql').that.is.an('object');
-        return new Promise((resolve, reject) => {
-          ctx.transaction.mysql.query('SELECT 1 AS col', (err, rows) => {
-            if (err) { return reject(err); }
-            ctx.body = rows[0];
-            resolve(rows[0]);
-          });
-        });
-      }
-    }
-    mockery.registerMock(upath.join(app.cwd, 'routes'), TestRoutes);
-    app.routes('routes');
-    app.init();
-    app.emit('pre listen');
+  describe('#prelisten()', () => {
+    it('should create a generic pool of connections', (done) => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
 
-    request.agent(app.server)
-    .get('/test')
-    .expect(200, JSON.stringify({col: '1'}))
-    .end(() => {
+      provider.prelisten(app);
+      expect(provider.pool).to.be.an.object;
+      expect(provider.pool).to.have.a.property('acquire').which.is.a.function;
+      expect(provider.pool).to.have.a.property('release').which.is.a.function;
+      expect(provider.pool).to.have.a.property('destroy').which.is.a.function;
+      app.close();
+      done();
+    });
+
+    it('should create a pool which destroys connections when they error out', (done) => {
+      const EventEmitter = require('events').EventEmitter;
+      const conn = new EventEmitter();
+      conn.connect = (cb) => cb(new Error());
+      const mysql = {
+        createConnection: () => conn
+      };
+      mockery.registerMock('mysql', mysql);
+
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
+
+      provider.prelisten(app);
+      const spy = sinon.stub(provider.pool, 'destroy');
+      conn.emit('error');
+      expect(spy).to.have.been.called;
+      done();
+    });
+  });
+
+  describe('#end()', () => {
+    it('should drain all connections in the pool', (done) => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
+
+      provider.prelisten(app);
+      const drainSpy = sinon.spy(provider.pool, 'drain');
+
+      provider.end();
+      app.close();
+      expect(drainSpy).to.have.been.called;
+      done();
+    });
+
+    it('should do nothing when the provider is not initialized', (done) => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      provider.end();
       app.close();
       done();
     });
   });
 
-  it('should trigger a rollback when a query fails', (done) => {
-    let spy;
-    class TestRoutes extends Routes {
-      constructor() {
-        super('/');
-      }
+  describe('#release()', () => {
+    it('should release a connection back to the pool if no errors were encountered', (done) => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
 
-      @transaction
-      @mapping(Routes.GET, 'test')
-      testHandler(ctx) {
-        expect(ctx).to.have.a.property('transaction').that.is.an('object');
-        expect(ctx.transaction).to.have.a.property('mysql').that.is.an('object');
-        spy = sinon.spy(ctx.transaction.mysql, 'rollback');
-        return Promise.reject(new Error());
-      }
-    }
-    mockery.registerMock(upath.join(app.cwd, 'routes'), TestRoutes);
-    app.routes('routes');
-    app.init();
-    app.emit('pre listen');
-
-    request.agent(app.server)
-    .get('/test')
-    .end((err) =>  {
-      try {
-        expect(spy).to.have.been.called;
-        done(err);
-      } catch (e) {
-        done(e);
-      } finally {
+      provider.prelisten(app);
+      const releaseSpy = sinon.spy(provider.pool, 'release');
+      provider.getTransactionConnection().then((conn) => {
+        provider.release(conn);
+        expect(releaseSpy).to.have.been.called;
         app.close();
-      }
+        done();
+      });
+    });
+
+    it('should remove a connection from the pool permanently if fatal errors were encountered', (done) => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
+
+      provider.prelisten(app);
+      const destroySpy = sinon.spy(provider.pool, 'destroy');
+      provider.getTransactionConnection().then((conn) => {
+        const err = new Error();
+        err.fatal = true;
+        provider.release(conn, err);
+        expect(destroySpy).to.have.been.called;
+        app.close();
+        done();
+      });
+    });
+  });
+
+  describe('#getTransactionConnection()', () => {
+    it('should resolve with a connection', () => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
+
+      provider.prelisten(app);
+      return provider.getTransactionConnection().then((c) => {
+        expect(c).to.have.a.property('query').that.is.a.function;
+        provider.release(c);
+        provider.end();
+        app.close();
+      });
+    });
+
+    it('should reject when a connection cannot be obtained', (done) => {
+      const EventEmitter = require('events').EventEmitter;
+      const conn = new EventEmitter();
+      const connectError = new Error();
+      conn.connect = (cb) => cb(connectError);
+      const mysql = {
+        createConnection: () => conn
+      };
+      mockery.registerMock('mysql', mysql);
+
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
+
+      provider.prelisten(app);
+      expect(provider.getTransactionConnection()).to.be.rejectedWith(connectError);
+      app.close();
+      done();
+    });
+
+    it('should reject when a transaction cannot be opened', (done) => {
+      const EventEmitter = require('events').EventEmitter;
+      const conn = new EventEmitter();
+      const beginTransactionError = new Error();
+      conn.connect = (cb) => cb();
+      conn.beginTransaction = (cb) => cb(beginTransactionError);
+      const mysql = {
+        createConnection: () => conn
+      };
+      mockery.registerMock('mysql', mysql);
+
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      provider.pool =  {
+        acquire: (cb) => cb(null, conn)
+      };
+
+      expect(provider.getTransactionConnection()).to.be.rejectedWith(beginTransactionError);
+      done();
     });
   });
 });
