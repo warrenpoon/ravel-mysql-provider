@@ -164,6 +164,25 @@ describe('Ravel MySQLProvider', () => {
       });
     });
 
+    it('should resolve with a connection which supports named positional parameters', () => {
+      const provider = new (require('../lib/ravel-mysql-provider'))(app);
+      app.set('mysql options', {
+        user: 'root',
+        password: 'password'
+      });
+      app.init();
+
+      provider.prelisten(app);
+      return provider.getTransactionConnection().then((c) => {
+        expect(c.config).to.have.a.property('queryFormat').that.is.a.function;
+        expect(c.config.queryFormat('UPDATE posts SET title = :title', { title: 'Hello MySQL'})).to.equal('UPDATE posts SET title = \'Hello MySQL\'');
+        expect(c.config.queryFormat('UPDATE posts SET title = :schtuff', {})).to.equal('UPDATE posts SET title = :schtuff');
+        provider.release(c);
+        provider.end();
+        app.close();
+      });
+    });
+
     it('should reject when a connection cannot be obtained', (done) => {
       const EventEmitter = require('events').EventEmitter;
       const conn = new EventEmitter();
@@ -235,15 +254,34 @@ describe('Ravel MySQLProvider', () => {
       done();
     });
 
-    it('should call commit on the connection, release it and reject when shouldResolve is true and a commit error occurred', (done) => {
+    it('should call commit on the connection, release it and reject when shouldResolve is true and a commit error occurred. should attempt to rollback.', (done) => {
       const commitStub = sinon.stub(connection, 'commit');
       const commitErr = new Error();
       commitStub.callsArgWith(0, commitErr);
+      const rollbackStub = sinon.stub(connection, 'rollback');
+      rollbackStub.callsArg(0);
       const releaseSpy = sinon.spy(provider.pool, 'release');
 
       expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(commitErr);
       expect(commitStub).to.have.been.called;
       expect(releaseSpy).to.have.been.called;
+      expect(rollbackStub).to.have.been.called;
+      done();
+    });
+
+    it('should call commit on the connection, release it and reject with a rollback error when shouldResolve is true and a commit error occurred, followed by a rollback error.', (done) => {
+      const commitStub = sinon.stub(connection, 'commit');
+      const commitErr = new Error();
+      commitStub.callsArgWith(0, commitErr);
+      const rollbackErr = new Error();
+      const rollbackStub = sinon.stub(connection, 'rollback');
+      rollbackStub.callsArgWith(0, rollbackErr);
+      const releaseSpy = sinon.spy(provider.pool, 'release');
+
+      expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(rollbackErr);
+      expect(commitStub).to.have.been.called;
+      expect(releaseSpy).to.have.been.called;
+      expect(rollbackStub).to.have.been.called;
       done();
     });
 
