@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
-// const sinon = require('sinon');
+const sinon = require('sinon');
 chai.use(require('sinon-chai'));
 const mockery = require('mockery');
 const redis = require('redis-mock');
@@ -67,7 +67,6 @@ describe('Ravel RethinkDB', () => {
   });
 
   describe('#exitTransaction()', () => {
-
     it('should reject when a connection cannot be closed', (done) => {
       const provider = new (require('../lib/ravel-rethinkdb-provider'))(app);
       const connectError = new Error();
@@ -79,6 +78,20 @@ describe('Ravel RethinkDB', () => {
       app.init();
 
       expect(provider.exitTransaction(connection)).to.be.rejectedWith(connectError);
+      app.close();
+      done();
+    });
+
+    it('should close the connection when we exit', (done) => {
+      const provider = new (require('../lib/ravel-rethinkdb-provider'))(app);
+      app.init();
+      const connection = {
+        close: () => true
+      };
+      const closeSpy = sinon.spy(connection, 'close');
+
+      provider.exitTransaction(connection);
+      expect(closeSpy).to.have.been.called;
       app.close();
       done();
     });
