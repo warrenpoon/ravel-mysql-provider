@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-// const expect = chai.expect;
+const expect = chai.expect;
 chai.use(require('chai-as-promised'));
 // const sinon = require('sinon');
 chai.use(require('sinon-chai'));
@@ -38,20 +38,47 @@ describe('Ravel RethinkDB', () => {
   });
 
 
-  describe('#prelisten()', () => {
-    it('skrr skrrr', (done) => {
+  describe('#getTransactionConnection()', () => {
+    it('should resolve with a connection', () => {
       const provider = new (require('../lib/ravel-rethinkdb-provider'))(app);
-      // app.set('mysql options', {
-      //   user: 'root',
-      //   password: 'password'
-      // });
       app.init();
 
       provider.prelisten(app);
-      // expect(provider.pool).to.be.an.object;
-      // expect(provider.pool).to.have.a.property('acquire').which.is.a.function;
-      // expect(provider.pool).to.have.a.property('release').which.is.a.function;
-      // expect(provider.pool).to.have.a.property('destroy').which.is.a.function;
+      return provider.getTransactionConnection().then((c) => {
+        expect(c).to.have.a.property('open').to.equal(true);
+        provider.exitTransaction(c);
+        app.close();
+      });
+    });
+
+    it('should reject when a connection cannot be obtained', (done) => {
+      const provider = new (require('../lib/ravel-rethinkdb-provider'))(app);
+      const connectError = new Error();
+      const rethinkdb = {
+        connect: () => connectError,
+      };
+      mockery.registerMock('rethinkdb', rethinkdb);
+      app.init();
+
+      expect(provider.getTransactionConnection()).to.be.rejectedWith(connectError);
+      app.close();
+      done();
+    });
+  });
+
+  describe('#exitTransaction()', () => {
+
+    it('should reject when a connection cannot be closed', (done) => {
+      const provider = new (require('../lib/ravel-rethinkdb-provider'))(app);
+      const connectError = new Error();
+      const connection = {
+        close: () => {
+          throw connectError;
+        }
+      };
+      app.init();
+
+      expect(provider.exitTransaction(connection)).to.be.rejectedWith(connectError);
       app.close();
       done();
     });
