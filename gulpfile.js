@@ -5,7 +5,7 @@ const plugins = require( 'gulp-load-plugins' )();
 const del = require('del');
 
 gulp.task('lint', function() {
-  return gulp.src(['./lib/**/*.js', './test/**/*.js', 'gulpfile.js', 'ravel-mysql-provider.js'])
+  return gulp.src(['./lib/**/*.js', './test/**/*.js', 'gulpfile.js', 'ravel-rethinkdb-provider.js'])
              .pipe(plugins.eslint())
              .pipe(plugins.eslint.format())
              .pipe(plugins.eslint.failAfterError());
@@ -13,7 +13,7 @@ gulp.task('lint', function() {
 
 gulp.task('watch', ['lint'], function() {
   gulp.watch(['./lib/**/*.js'], ['lint']);
-  gulp.watch(['gulpfile.js', 'ravel-mysql-provider.js', './test/**/*.js'], ['lint']);
+  gulp.watch(['gulpfile.js', 'ravel-rethinkdb-provider.js', './test/**/*.js'], ['lint']);
 });
 
 gulp.task('clean', function() {

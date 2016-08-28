@@ -13,10 +13,10 @@ addons:
 node_js:
   - "6.2.1"
 before_install:
-  - docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mariadb:10.1.14
+  - docker run --rm --name rethinkdb -p 28015:28015 rethinkdb:2.3.4
   - docker ps -a
   - $CXX --version
   - npm install
 after_script:
   - codeclimate-test-reporter < reports/lcov.info
-  - docker rm -fv mysql
+  - docker rm -fv rethinkdb

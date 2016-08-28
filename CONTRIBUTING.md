@@ -1,4 +1,4 @@
-# Contributing to ravel-mysql-provider
+# Contributing to ravel-rethinkdb-provider
 
 ## Rules
 
@@ -23,6 +23,6 @@ $ npm test
 Due to a [bug in istanbul](https://github.com/gotwarlost/istanbul/issues/274), failing tests will report incorrect line numbers. For this situation, use `test-no-cov`, which will omit code coverage reporting and give you accurate line numbers.
 
 ```bash
-$ docker run --rm -e MYSQL_ROOT_PASSWORD=password -p 3306:3306  mariadb:10.1.14
+$ docker run --rm -p 28015:28015 rethinkdb:2.3.4
 $ npm run test-no-cov
 ```
