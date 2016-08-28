@@ -1,0 +1,22 @@
+language: node_js
+sudo: required
+services:
+  - docker
+env:
+  - CXX=g++-4.8
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
+node_js:
+  - "6.2.1"
+before_install:
+  - docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mariadb:10.1.14
+  - docker ps -a
+  - $CXX --version
+  - npm install
+after_script:
+  - codeclimate-test-reporter < reports/lcov.info
+  - docker rm -fv mysql
