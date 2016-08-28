@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const sinon = require('sinon');
+// const sinon = require('sinon');
 chai.use(require('sinon-chai'));
 const redis = require('redis-mock');
 const request = require('supertest');
@@ -33,7 +33,7 @@ describe('Ravel RethinkdbProvider integration test', () => {
     //   user: 'root',
     //   password: 'password'
     // });
-    // app.set('keygrip keys', ['mysecret']);
+    app.set('keygrip keys', ['mysecret']);
 
     done();
   });
@@ -46,7 +46,7 @@ describe('Ravel RethinkdbProvider integration test', () => {
   });
 
 
-  it('should provide clients with a connection to query an existing MySQL database', (done) => {
+  it('should provide clients with a connection to query an existing rethink database', (done) => {
     class TestRoutes extends Routes {
       constructor() {
         super('/');
@@ -56,13 +56,18 @@ describe('Ravel RethinkdbProvider integration test', () => {
       @mapping(Routes.GET, 'test')
       testHandler(ctx) {
         expect(ctx).to.have.a.property('transaction').that.is.an('object');
-        expect(ctx.transaction).to.have.a.property('mysql').that.is.an('object');
+        expect(ctx.transaction).to.have.a.property('rethinkdb').that.is.an('object');
         return new Promise((resolve, reject) => {
-          ctx.transaction.mysql.query('SELECT 1 AS col', (err, rows) => {
-            if (err) { return reject(err); }
-            ctx.body = rows[0];
-            resolve(rows[0]);
-          });
+          // ctx.transaction.rethinkdb.query('SELECT 1 AS col', (err, rows) => {
+          //   if (err) { return reject(err); }
+          //   ctx.body = rows[0];
+          //   resolve(rows[0]);\
+          // });
+          if (1 === 2) {
+            reject();
+          }
+          ctx.body = {col: '1'};
+          resolve({col: '1'});
         });
       }
     }
@@ -81,7 +86,6 @@ describe('Ravel RethinkdbProvider integration test', () => {
   });
 
   it('should trigger a rollback when a query fails', (done) => {
-    let spy;
     class TestRoutes extends Routes {
       constructor() {
         super('/');
@@ -91,9 +95,19 @@ describe('Ravel RethinkdbProvider integration test', () => {
       @mapping(Routes.GET, 'test')
       testHandler(ctx) {
         expect(ctx).to.have.a.property('transaction').that.is.an('object');
-        expect(ctx.transaction).to.have.a.property('mysql').that.is.an('object');
-        spy = sinon.spy(ctx.transaction.mysql, 'rollback');
-        return Promise.reject(new Error());
+        expect(ctx.transaction).to.have.a.property('rethinkdb').that.is.an('object');
+        return new Promise((resolve, reject) => {
+          // ctx.transaction.rethinkdb.query('SELECT 1 AS col', (err, rows) => {
+          //   if (err) { return reject(err); }
+          //   ctx.body = rows[0];
+          //   resolve(rows[0]);\
+          // });
+          if (1 === 2) {
+            reject();
+          }
+          ctx.body = 'test';
+          resolve('test');
+        });
       }
     }
     mockery.registerMock(upath.join(app.cwd, 'routes'), TestRoutes);
@@ -103,15 +117,10 @@ describe('Ravel RethinkdbProvider integration test', () => {
 
     request.agent(app.server)
     .get('/test')
-    .end((err) =>  {
-      try {
-        expect(spy).to.have.been.called;
-        done(err);
-      } catch (e) {
-        done(e);
-      } finally {
-        app.close();
-      }
+    .expect(200, 'test')
+    .end((err) => {
+      app.close();
+      done(err);
     });
   });
 });
