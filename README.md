@@ -16,10 +16,10 @@ const app = new require('ravel')();
 const MySQLProvider = require('ravel-mysql-provider');
 new MySQLProvider(app);
 // ... other providers and parameters
-app.init();
 app.modules('./modules');
 app.resources('./resources');
 // ... the rest of your Ravel app
+app.init();
 app.listen();
 ```
 
