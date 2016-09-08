@@ -1,6 +1,6 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.17.1",
+  "version": "0.17.2",
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
@@ -55,9 +55,9 @@
     "gulp-open": "2.0.0",
 
     "gulp-sourcemaps": "1.6.0",
-    "gulp-babel":"6.1.2",
-    "babel":"6.5.2",
-    "babel-eslint": "6.0.4",
-    "babel-plugin-transform-decorators-legacy": "1.3.4"
+    "gulp-typescript": "2.13.6",
+    "typescript": "1.8.10",
+    "source-map-support": "0.4.2",
+    "typescript-eslint-parser": "0.2.0"
   }
 }

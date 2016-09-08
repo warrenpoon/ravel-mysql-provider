@@ -13,7 +13,7 @@ gulp.task('lint', function() {
 
 gulp.task('watch', ['lint'], function() {
   gulp.watch(['./lib/**/*.js'], ['lint']);
-  gulp.watch(['gulpfile.js', 'ravel-mysql-provider.js', './test/**/*.js'], ['lint']);
+  gulp.watch(['gulpfile.js', './test/**/*.js'], ['lint']);
 });
 
 gulp.task('clean', function() {
@@ -34,7 +34,14 @@ gulp.task('cover', ['transpile'], function() {
 gulp.task('transpile', ['clean', 'lint'], function() {
   return gulp.src('test/**/*.js')
       .pipe(plugins.sourcemaps.init())
-      .pipe(plugins.babel())
+      // .pipe(plugins.babel())
+      .pipe(plugins.typescript({
+        typescript: require('typescript'),
+        allowJs: true,
+        experimentalDecorators: true,
+        // emitDecoratorMetadata: true,
+        target: 'ES6',
+      }))
       .pipe(plugins.sourcemaps.write('.'))
       .pipe(gulp.dest('test-dist'));
 });
