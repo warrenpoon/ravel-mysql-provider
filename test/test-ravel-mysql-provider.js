@@ -183,7 +183,7 @@ describe('Ravel MySQLProvider', () => {
       });
     });
 
-    it('should reject when a connection cannot be obtained', (done) => {
+    it('should reject when a connection cannot be obtained', () => {
       const EventEmitter = require('events').EventEmitter;
       const conn = new EventEmitter();
       const connectError = new Error();
@@ -201,12 +201,10 @@ describe('Ravel MySQLProvider', () => {
       app.init();
 
       provider.prelisten(app);
-      expect(provider.getTransactionConnection()).to.be.rejectedWith(connectError);
-      app.close();
-      done();
+      return expect(provider.getTransactionConnection()).to.be.rejectedWith(connectError).then(() => app.close());
     });
 
-    it('should reject when a transaction cannot be opened', (done) => {
+    it('should reject when a transaction cannot be opened', () => {
       const EventEmitter = require('events').EventEmitter;
       const conn = new EventEmitter();
       const beginTransactionError = new Error();
@@ -222,8 +220,7 @@ describe('Ravel MySQLProvider', () => {
         acquire: (cb) => cb(null, conn)
       };
 
-      expect(provider.getTransactionConnection()).to.be.rejectedWith(beginTransactionError);
-      done();
+      return expect(provider.getTransactionConnection()).to.be.rejectedWith(beginTransactionError);
     });
   });
 
@@ -243,18 +240,19 @@ describe('Ravel MySQLProvider', () => {
       done();
     });
 
-    it('should call commit on the connection, release it and resolve when shouldResolve is true', (done) => {
+    it('should call commit on the connection, release it and resolve when shouldCommit is true', () => {
       const commitStub = sinon.stub(connection, 'commit');
       commitStub.callsArg(0);
       const releaseSpy = sinon.spy(provider.pool, 'release');
 
-      expect(provider.exitTransaction(connection, true)).to.be.fulfilled;
-      expect(commitStub).to.have.been.called;
-      expect(releaseSpy).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, true)).to.be.fulfilled,
+        expect(commitStub).to.have.been.called,
+        expect(releaseSpy).to.have.been.called
+      ]);
     });
 
-    it('should call commit on the connection, release it and reject when shouldResolve is true and a commit error occurred. should attempt to rollback.', (done) => {
+    it('should call commit on the connection, release it and reject when shouldCommit is true and a commit error occurred. should attempt to rollback.', () => {
       const commitStub = sinon.stub(connection, 'commit');
       const commitErr = new Error();
       commitStub.callsArgWith(0, commitErr);
@@ -262,14 +260,15 @@ describe('Ravel MySQLProvider', () => {
       rollbackStub.callsArg(0);
       const releaseSpy = sinon.spy(provider.pool, 'release');
 
-      expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(commitErr);
-      expect(commitStub).to.have.been.called;
-      expect(releaseSpy).to.have.been.called;
-      expect(rollbackStub).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(commitErr),
+        expect(commitStub).to.have.been.called,
+        expect(releaseSpy).to.have.been.called,
+        expect(rollbackStub).to.have.been.called
+      ]);
     });
 
-    it('should call commit on the connection, release it and reject with a rollback error when shouldResolve is true and a commit error occurred, followed by a rollback error.', (done) => {
+    it('should call commit on the connection, release it and reject with a rollback error when shouldCommit is true and a commit error occurred, followed by a rollback error.', () => {
       const commitStub = sinon.stub(connection, 'commit');
       const commitErr = new Error();
       commitStub.callsArgWith(0, commitErr);
@@ -278,60 +277,65 @@ describe('Ravel MySQLProvider', () => {
       rollbackStub.callsArgWith(0, rollbackErr);
       const releaseSpy = sinon.spy(provider.pool, 'release');
 
-      expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(rollbackErr);
-      expect(commitStub).to.have.been.called;
-      expect(releaseSpy).to.have.been.called;
-      expect(rollbackStub).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(rollbackErr),
+        expect(commitStub).to.have.been.called,
+        expect(releaseSpy).to.have.been.called,
+        expect(rollbackStub).to.have.been.called
+      ]);
     });
 
-    it('should call commit on the connection, destroy it and reject when shouldResolve is true and a fatal commit error occurred', (done) => {
+    it('should call commit on the connection, destroy it and reject when shouldCommit is true and a fatal commit error occurred', () => {
       const commitStub = sinon.stub(connection, 'commit');
       const fatalErr = new Error();
       fatalErr.fatal = true;
       commitStub.callsArgWith(0, fatalErr);
       const destroySpy = sinon.spy(provider.pool, 'destroy');
 
-      expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(fatalErr);
-      expect(commitStub).to.have.been.called;
-      expect(destroySpy).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, true)).to.be.rejectedWith(fatalErr),
+        expect(commitStub).to.have.been.called,
+        expect(destroySpy).to.have.been.called
+      ]);
     });
 
-    it('should call rollback on the connection, release it and resolve when shouldResolve is false', (done) => {
+    it('should call rollback on the connection, release it and resolve when shouldCommit is false', () => {
       const rollbackStub = sinon.stub(connection, 'rollback');
       rollbackStub.callsArg(0);
       const releaseSpy = sinon.spy(provider.pool, 'release');
 
-      expect(provider.exitTransaction(connection, false)).to.be.fulfilled;
-      expect(rollbackStub).to.have.been.called;
-      expect(releaseSpy).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, false)).to.be.fulfilled,
+        expect(rollbackStub).to.have.been.called,
+        expect(releaseSpy).to.have.been.called
+      ]);
     });
 
-    it('should call rollback on the connection, release it and reject when shouldResolve is false and a rollback error occurred', (done) => {
+    it('should call rollback on the connection, release it and reject when shouldCommit is false and a rollback error occurred', () => {
       const rollbackStub = sinon.stub(connection, 'rollback');
       const rollbackErr = new Error();
       rollbackStub.callsArgWith(0, rollbackErr);
       const releaseSpy = sinon.spy(provider.pool, 'release');
 
-      expect(provider.exitTransaction(connection, false)).to.be.rejectedWith(rollbackErr);
-      expect(rollbackStub).to.have.been.called;
-      expect(releaseSpy).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, false)).to.be.rejectedWith(rollbackErr),
+        expect(rollbackStub).to.have.been.called,
+        expect(releaseSpy).to.have.been.called
+      ]);
     });
 
-    it('should call rollback on the connection, destroy it and reject when shouldResolve is false and a fatal rollback error occurred', (done) => {
+    it('should call rollback on the connection, destroy it and reject when shouldCommit is false and a fatal rollback error occurred', () => {
       const rollbackStub = sinon.stub(connection, 'rollback');
       const fatalErr = new Error();
       fatalErr.fatal = true;
       rollbackStub.callsArgWith(0, fatalErr);
       const destroySpy = sinon.spy(provider.pool, 'destroy');
 
-      expect(provider.exitTransaction(connection, false)).to.be.rejectedWith(fatalErr);
-      expect(rollbackStub).to.have.been.called;
-      expect(destroySpy).to.have.been.called;
-      done();
+      return Promise.all([
+        expect(provider.exitTransaction(connection, false)).to.be.rejectedWith(fatalErr),
+        expect(rollbackStub).to.have.been.called,
+        expect(destroySpy).to.have.been.called
+      ]);
     });
   });
 });
