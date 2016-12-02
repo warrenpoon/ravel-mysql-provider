@@ -13,7 +13,7 @@ addons:
 node_js:
   - "7"
 before_install:
-  - docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mariadb:10.1.14
+  - docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 13306:3306 mariadb:10.1.14
   - docker ps -a
   - $CXX --version
   - npm install

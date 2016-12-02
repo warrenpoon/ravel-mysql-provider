@@ -31,7 +31,8 @@ describe('Ravel MySQLProvider integration test', () => {
     new (require('../lib/ravel-mysql-provider'))(app); // eslint-disable-line new-cap, no-new
     app.set('mysql options', {
       user: 'root',
-      password: 'password'
+      password: 'password',
+      port: 13306
     });
     app.set('keygrip keys', ['mysecret']);
 

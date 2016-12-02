@@ -43,7 +43,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -68,7 +69,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -85,7 +87,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -111,7 +114,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -129,7 +133,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -151,7 +156,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -168,7 +174,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
@@ -196,7 +203,8 @@ describe('Ravel MySQLProvider', () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
-        password: 'password'
+        password: 'password',
+        port: 13306
       });
       app.init();
 
