@@ -4,8 +4,13 @@ const gulp = require('gulp');
 const plugins = require( 'gulp-load-plugins' )();
 const del = require('del');
 
+const TESTS = [
+  'test-dist/test/test-ravel-mysql-provider.js',
+  'test-dist/test/test-integration.js'
+];
+
 gulp.task('lint', function() {
-  return gulp.src(['./lib/**/*.js', './test/**/*.js', 'gulpfile.js', 'ravel-mysql-provider.js'])
+  return gulp.src(['./lib/**/*.js', './test/**/*.js', 'gulpfile.js'])
              .pipe(plugins.eslint())
              .pipe(plugins.eslint.format())
              .pipe(plugins.eslint.failAfterError());
@@ -22,8 +27,8 @@ gulp.task('clean', function() {
   ]);
 });
 
-gulp.task('cover', ['transpile'], function() {
-  return gulp.src(['./lib/**/*.js'])
+gulp.task('cover-lib', ['transpile-lib'], function() {
+  return gulp.src(['./test-dist/lib/**/*.js'])
              .pipe(plugins.istanbul({
               //  instrumenter: isparta.Instrumenter,
                includeUntested: true
@@ -31,27 +36,33 @@ gulp.task('cover', ['transpile'], function() {
              .pipe(plugins.istanbul.hookRequire());
 });
 
-gulp.task('transpile', ['clean', 'lint'], function() {
+gulp.task('copy-lib', ['clean', 'lint'], function() {
+  return gulp.src('lib/**/*.js')
+      .pipe(gulp.dest('test-dist/lib'));
+});
+
+gulp.task('transpile-lib', ['clean', 'lint'], function() {
+  return gulp.src('lib/**/*.js')
+      .pipe(plugins.sourcemaps.init())
+      .pipe(plugins.babel())
+      .pipe(plugins.sourcemaps.write('.'))
+      .pipe(gulp.dest('test-dist/lib'));
+});
+
+gulp.task('transpile-tests', ['clean', 'lint'], function() {
   return gulp.src('test/**/*.js')
       .pipe(plugins.sourcemaps.init())
-      // .pipe(plugins.babel())
-      .pipe(plugins.typescript({
-        typescript: require('typescript'),
-        allowJs: true,
-        experimentalDecorators: true,
-        // emitDecoratorMetadata: true,
-        target: 'ES6',
-      }))
+      .pipe(plugins.babel())
       .pipe(plugins.sourcemaps.write('.'))
-      .pipe(gulp.dest('test-dist'));
+      .pipe(gulp.dest('test-dist/test'));
 });
 
 //necessary to locate issues in code, due to https://github.com/gotwarlost/istanbul/issues/274
-gulp.task('test-no-cov', ['transpile'], function () {
+gulp.task('test-no-cov', ['copy-lib', 'transpile-tests'], function () {
   const env = plugins.env.set({
     LOG_LEVEL : 'critical'
   });
-  return gulp.src(['test-dist/**/*.js'])
+  return gulp.src(TESTS)
     .pipe(env)
     .pipe(plugins.mocha({
       reporter: 'spec',
@@ -62,17 +73,17 @@ gulp.task('test-no-cov', ['transpile'], function () {
     .pipe(env.reset);
 });
 
-gulp.task('test', ['cover'], function () {
+gulp.task('test', ['cover-lib', 'transpile-tests'], function () {
   const env = plugins.env.set({
     LOG_LEVEL : 'critical'
   });
-  return gulp.src(['test-dist/**/*.js'])
+  return gulp.src(TESTS)
     .pipe(env)
     .pipe(plugins.mocha({
       reporter: 'spec',
       quiet:false,
       colors:true,
-      timeout: 10000
+      timeout: 60000
     }))
     // Creating the reports after tests ran
     .pipe(plugins.istanbul.writeReports({

@@ -11,7 +11,7 @@ addons:
     packages:
     - g++-4.8
 node_js:
-  - "6.2.1"
+  - "7"
 before_install:
   - docker run --name mysql -d -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mariadb:10.1.14
   - docker ps -a

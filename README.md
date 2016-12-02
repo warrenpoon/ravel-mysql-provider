@@ -91,6 +91,7 @@ Requiring the `ravel-mysql-provider` module will register a configuration parame
     "user": "root",
     "password": "a password",
     "database": "mydatabase",
+    "acquireTimeoutMillis": 5000,
     "idleTimeoutMillis": 5000,
     "connectionLimit": 10
   }

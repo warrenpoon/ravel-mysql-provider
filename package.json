@@ -1,6 +1,6 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.17.2",
+  "version": "0.18.0",
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
@@ -16,18 +16,18 @@
     "clean": "gulp clean",
     "docs":"gulp docs",
     "watch":"gulp watch",
-    "test":"gulp test",
-    "test-no-cov":"gulp test-no-cov",
+    "test":"node --harmony_async_await $(which gulp) --require source-map-support/register test",
+    "test-no-cov":"node --harmony_async_await $(which gulp) --require source-map-support/register test-no-cov",
     "show-coverage":"gulp show-coverage",
-    "debug":"node debug $(which gulp) test-no-cov",
-    "debug-remote":"node --debug-brk=5858 $(which gulp) test-no-cov"
+    "debug":"node --harmony_async_await debug $(which gulp) --require source-map-support/register test-no-cov",
+    "debug-remote":"node --harmony_async_await --debug-brk=5858 $(which gulp) --require source-map-support/register test-no-cov"
   },
   "dependencies": {
-    "mysql": "2.10.2",
-    "generic-pool": "2.4.2"
+    "mysql": "2.12.0",
+    "generic-pool": "2.5.0"
   },
   "peerDependencies": {
-    "ravel": "0.17.x"
+    "ravel": "0.18.x"
   },
   "devDependencies": {
     "chai":"3.5.0",
@@ -38,7 +38,7 @@
     "supertest":"1.2.0",
     "eslint": "2.8.0",
     "redis-mock":"0.5.2",
-    "ravel": "^0.17.0",
+    "ravel": "^0.18.0",
     "sinon":"1.17.3",
     "sinon-chai":"2.8.0",
     "upath": "0.1.7",
@@ -54,10 +54,12 @@
     "gulp-mocha": "2.2.0",
     "gulp-open": "2.0.0",
 
-    "gulp-sourcemaps": "1.6.0",
-    "gulp-typescript": "2.13.6",
-    "typescript": "1.8.10",
-    "source-map-support": "0.4.2",
-    "typescript-eslint-parser": "0.2.0"
+    "gulp-sourcemaps": "1.9.1",
+    "source-map-support": "0.4.6",
+    "gulp-babel":"6.1.2",
+    "babel-core":"6.18.2",
+    "babel-plugin-transform-async-to-generator": "6.16.0",
+    "babel-eslint": "7.1.1",
+    "babel-plugin-transform-decorators-legacy": "1.3.4"
   }
 }

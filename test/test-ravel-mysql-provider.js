@@ -217,7 +217,9 @@ describe('Ravel MySQLProvider', () => {
 
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       provider.pool =  {
-        acquire: (cb) => cb(null, conn)
+        acquire: (cb) => cb(null, conn),
+        drain: function(cb) {cb();},
+        destroyAllNow: function() {}
       };
 
       return expect(provider.getTransactionConnection()).to.be.rejectedWith(beginTransactionError);
@@ -235,7 +237,9 @@ describe('Ravel MySQLProvider', () => {
       provider = new (require('../lib/ravel-mysql-provider'))(app);
       provider.pool =  {
         destroy: function() {},
-        release: function() {}
+        release: function() {},
+        drain: function(cb) {cb();},
+        destroyAllNow: function() {}
       };
       done();
     });
