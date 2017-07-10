@@ -72,12 +72,12 @@ describe('Ravel MySQLProvider integration test', () => {
     app.emit('pre listen');
 
     request.agent(app.server)
-    .get('/test')
-    .expect(200, JSON.stringify({col: '1'}))
-    .end((err) => {
-      app.close();
-      done(err);
-    });
+      .get('/test')
+      .expect(200, JSON.stringify({col: '1'}))
+      .end((err) => {
+        app.close();
+        done(err);
+      });
   });
 
   it('should trigger a rollback when a query fails', (done) => {
@@ -102,16 +102,16 @@ describe('Ravel MySQLProvider integration test', () => {
     app.emit('pre listen');
 
     request.agent(app.server)
-    .get('/test')
-    .end((err) => {
-      try {
-        expect(spy).to.have.been.called;
-        done(err);
-      } catch (e) {
-        done(e);
-      } finally {
-        app.close();
-      }
-    });
+      .get('/test')
+      .end((err) => {
+        try {
+          expect(spy).to.have.been.called;
+          done(err);
+        } catch (e) {
+          done(e);
+        } finally {
+          app.close();
+        }
+      });
   });
 });

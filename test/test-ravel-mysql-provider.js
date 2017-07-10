@@ -48,10 +48,10 @@ describe('Ravel MySQLProvider', () => {
       app.init();
 
       provider.prelisten(app);
-      expect(provider.pool).to.be.an.object;
-      expect(provider.pool).to.have.a.property('acquire').which.is.a.function;
-      expect(provider.pool).to.have.a.property('release').which.is.a.function;
-      expect(provider.pool).to.have.a.property('destroy').which.is.a.function;
+      expect(provider.pool).to.be.an('object');
+      expect(provider.pool).to.have.a.property('acquire').which.is.a('function');
+      expect(provider.pool).to.have.a.property('release').which.is.a('function');
+      expect(provider.pool).to.have.a.property('destroy').which.is.a('function');
       app.close();
       done();
     });
@@ -162,7 +162,7 @@ describe('Ravel MySQLProvider', () => {
 
       provider.prelisten(app);
       return provider.getTransactionConnection().then((c) => {
-        expect(c).to.have.a.property('query').that.is.a.function;
+        expect(c).to.have.a.property('query').that.is.a('function');
         provider.release(c);
         provider.end();
         app.close();
@@ -180,7 +180,7 @@ describe('Ravel MySQLProvider', () => {
 
       provider.prelisten(app);
       return provider.getTransactionConnection().then((c) => {
-        expect(c.config).to.have.a.property('queryFormat').that.is.a.function;
+        expect(c.config).to.have.a.property('queryFormat').that.is.a('function');
         expect(c.config.queryFormat(
           'UPDATE posts SET title = :title', {title: 'Hello MySQL'}))
           .to.equal('UPDATE posts SET title = \'Hello MySQL\'');

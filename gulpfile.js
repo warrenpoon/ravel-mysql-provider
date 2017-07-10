@@ -11,9 +11,9 @@ const TESTS = [
 
 gulp.task('lint', function () {
   return gulp.src(['./lib/**/*.js', './test/**/*.js', 'gulpfile.js'])
-             .pipe(plugins.eslint())
-             .pipe(plugins.eslint.format())
-             .pipe(plugins.eslint.failAfterError());
+    .pipe(plugins.eslint())
+    .pipe(plugins.eslint.format())
+    .pipe(plugins.eslint.failAfterError());
 });
 
 gulp.task('watch', ['lint'], function () {
@@ -29,32 +29,32 @@ gulp.task('clean', function () {
 
 gulp.task('cover-lib', ['transpile-lib'], function () {
   return gulp.src(['./test-dist/lib/**/*.js'])
-             .pipe(plugins.istanbul({
-              //  instrumenter: isparta.Instrumenter,
-               includeUntested: true
-             }))
-             .pipe(plugins.istanbul.hookRequire());
+    .pipe(plugins.istanbul({
+      //  instrumenter: isparta.Instrumenter,
+      includeUntested: true
+    }))
+    .pipe(plugins.istanbul.hookRequire());
 });
 
 gulp.task('copy-lib', ['clean', 'lint'], function () {
   return gulp.src('lib/**/*.js')
-      .pipe(gulp.dest('test-dist/lib'));
+    .pipe(gulp.dest('test-dist/lib'));
 });
 
 gulp.task('transpile-lib', ['clean', 'lint'], function () {
   return gulp.src('lib/**/*.js')
-      .pipe(plugins.sourcemaps.init())
-      .pipe(plugins.babel())
-      .pipe(plugins.sourcemaps.write('.'))
-      .pipe(gulp.dest('test-dist/lib'));
+    .pipe(plugins.sourcemaps.init())
+    .pipe(plugins.babel())
+    .pipe(plugins.sourcemaps.write('.'))
+    .pipe(gulp.dest('test-dist/lib'));
 });
 
 gulp.task('transpile-tests', ['clean', 'lint'], function () {
   return gulp.src('test/**/*.js')
-      .pipe(plugins.sourcemaps.init())
-      .pipe(plugins.babel())
-      .pipe(plugins.sourcemaps.write('.'))
-      .pipe(gulp.dest('test-dist/test'));
+    .pipe(plugins.sourcemaps.init())
+    .pipe(plugins.babel())
+    .pipe(plugins.sourcemaps.write('.'))
+    .pipe(gulp.dest('test-dist/test'));
 });
 
 // necessary to locate issues in code, due to https://github.com/gotwarlost/istanbul/issues/274
@@ -97,7 +97,7 @@ gulp.task('test', ['cover-lib', 'transpile-tests'], function () {
 
 gulp.task('show-coverage', function () {
   return gulp.src('./reports/index.html')
-             .pipe(plugins.open());
+    .pipe(plugins.open());
 });
 
 gulp.task('default', ['watch']);
