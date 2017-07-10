@@ -14,7 +14,7 @@ let Ravel, Routes, mapping, transaction, app;
 describe('Ravel MySQLProvider integration test', () => {
   beforeEach((done) => {
     process.removeAllListeners('unhandledRejection');
-    //enable mockery
+    // enable mockery
     mockery.enable({
       useCleanCache: true,
       warnOnReplace: false,
@@ -48,13 +48,13 @@ describe('Ravel MySQLProvider integration test', () => {
 
   it('should provide clients with a connection to query an existing MySQL database', (done) => {
     class TestRoutes extends Routes {
-      constructor() {
+      constructor () {
         super('/');
       }
 
       @transaction
       @mapping(Routes.GET, 'test')
-      testHandler(ctx) {
+      testHandler (ctx) {
         expect(ctx).to.have.a.property('transaction').that.is.an('object');
         expect(ctx.transaction).to.have.a.property('mysql').that.is.an('object');
         return new Promise((resolve, reject) => {
@@ -83,13 +83,13 @@ describe('Ravel MySQLProvider integration test', () => {
   it('should trigger a rollback when a query fails', (done) => {
     let spy;
     class TestRoutes extends Routes {
-      constructor() {
+      constructor () {
         super('/');
       }
 
       @transaction
       @mapping(Routes.GET, 'test')
-      testHandler(ctx) {
+      testHandler (ctx) {
         expect(ctx).to.have.a.property('transaction').that.is.an('object');
         expect(ctx.transaction).to.have.a.property('mysql').that.is.an('object');
         spy = sinon.spy(ctx.transaction.mysql, 'rollback');
@@ -103,7 +103,7 @@ describe('Ravel MySQLProvider integration test', () => {
 
     request.agent(app.server)
     .get('/test')
-    .end((err) =>  {
+    .end((err) => {
       try {
         expect(spy).to.have.been.called;
         done(err);

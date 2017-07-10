@@ -16,13 +16,13 @@
 To test (with code coverage):
 
 ```bash
-$ docker run --rm -e MYSQL_ROOT_PASSWORD=password -p 3306:3306  mariadb:10.1.14
+$ docker run --rm -e MYSQL_ROOT_PASSWORD=password -p 13306:3306  mariadb:10.1.14
 $ npm test
 ```
 
 Due to a [bug in istanbul](https://github.com/gotwarlost/istanbul/issues/274), failing tests will report incorrect line numbers. For this situation, use `test-no-cov`, which will omit code coverage reporting and give you accurate line numbers.
 
 ```bash
-$ docker run --rm -e MYSQL_ROOT_PASSWORD=password -p 3306:3306  mariadb:10.1.14
+$ docker run --rm -e MYSQL_ROOT_PASSWORD=password -p 13306:3306  mariadb:10.1.14
 $ npm run test-no-cov
 ```

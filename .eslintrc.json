@@ -1,67 +1,25 @@
 {
+  "plugins": ["jsdoc"],
   "env": {
     "node": true,
     "builtin": true,
     "es6": true
   },
   "parser": "babel-eslint",
+  "extends": "semistandard",
   "globals": {},
   "rules": {
-    "block-scoped-var": 2,
-    "camelcase": 2,
-    "comma-style": [
-      2,
-      "last"
-    ],
-    "curly": [
-      2,
-      "all"
-    ],
-    "dot-notation": [
-      2,
-      {
-        "allowKeywords": true
-      }
-    ],
-    "eqeqeq": [
-      2,
-      "allow-null"
-    ],
-    "guard-for-in": 2,
-    "new-cap": 2,
-    "no-bitwise": 2,
-    "no-caller": 2,
-    "no-cond-assign": [
-      2,
-      "except-parens"
-    ],
-    "no-debugger": 2,
-    "no-empty": 2,
-    "no-eval": 2,
-    "no-extend-native": 2,
-    "no-extra-parens": 2,
-    "no-irregular-whitespace": 2,
-    "no-iterator": 2,
-    "no-loop-func": 2,
-    "no-multi-str": 2,
-    "no-new": 2,
-    "no-proto": 2,
-    "no-script-url": 2,
-    "no-sequences": 2,
-    "no-shadow": 2,
-    "no-undef": 2,
-    "no-unused-vars": 2,
-    "no-with": 2,
-    "quotes": [
-      2,
-      "single"
-    ],
-    "semi": [2, "always"],
-    "strict": [0, "global"],
-    "valid-typeof": 2,
-    "wrap-iife": [
-      2,
-      "inside"
-    ]
+    "max-len":  [2, 200, 2],
+    "jsdoc/check-param-names": 1,
+    "jsdoc/check-tag-names": 1,
+    "jsdoc/check-types": 1,
+    "jsdoc/newline-after-description": 1,
+    "jsdoc/require-description-complete-sentence": 1,
+    "jsdoc/require-hyphen-before-param-description": 1,
+    "jsdoc/require-param": 1,
+    "jsdoc/require-param-description": 1,
+    "jsdoc/require-param-type": 1,
+    "jsdoc/require-returns-description": 1,
+    "jsdoc/require-returns-type": 1
   }
 }

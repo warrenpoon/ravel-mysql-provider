@@ -13,7 +13,7 @@ let Ravel, app;
 describe('Ravel MySQLProvider', () => {
   beforeEach((done) => {
     process.removeAllListeners('unhandledRejection');
-    //enable mockery
+    // enable mockery
     mockery.enable({
       useCleanCache: true,
       warnOnReplace: false,
@@ -36,7 +36,6 @@ describe('Ravel MySQLProvider', () => {
     app.close();
     done();
   });
-
 
   describe('#prelisten()', () => {
     it('should create a generic pool of connections', (done) => {
@@ -182,8 +181,11 @@ describe('Ravel MySQLProvider', () => {
       provider.prelisten(app);
       return provider.getTransactionConnection().then((c) => {
         expect(c.config).to.have.a.property('queryFormat').that.is.a.function;
-        expect(c.config.queryFormat('UPDATE posts SET title = :title', { title: 'Hello MySQL'})).to.equal('UPDATE posts SET title = \'Hello MySQL\'');
-        expect(c.config.queryFormat('UPDATE posts SET title = :schtuff', {})).to.equal('UPDATE posts SET title = :schtuff');
+        expect(c.config.queryFormat(
+          'UPDATE posts SET title = :title', {title: 'Hello MySQL'}))
+          .to.equal('UPDATE posts SET title = \'Hello MySQL\'');
+        expect(c.config.queryFormat(
+          'UPDATE posts SET title = :schtuff', {})).to.equal('UPDATE posts SET title = :schtuff');
         provider.release(c);
         provider.end();
         app.close();
@@ -224,10 +226,10 @@ describe('Ravel MySQLProvider', () => {
       mockery.registerMock('mysql', mysql);
 
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
-      provider.pool =  {
+      provider.pool = {
         acquire: (cb) => cb(null, conn),
-        drain: function(cb) {cb();},
-        destroyAllNow: function() {}
+        drain: function (cb) { cb(); },
+        destroyAllNow: function () {}
       };
 
       return expect(provider.getTransactionConnection()).to.be.rejectedWith(beginTransactionError);
@@ -240,14 +242,14 @@ describe('Ravel MySQLProvider', () => {
     beforeEach((done) => {
       connection = {
         commit: (cb) => cb(),
-        rollback: (cb) => cb(),
+        rollback: (cb) => cb()
       };
       provider = new (require('../lib/ravel-mysql-provider'))(app);
-      provider.pool =  {
-        destroy: function() {},
-        release: function() {},
-        drain: function(cb) {cb();},
-        destroyAllNow: function() {}
+      provider.pool = {
+        destroy: function () {},
+        release: function () {},
+        drain: function (cb) { cb(); },
+        destroyAllNow: function () {}
       };
       done();
     });
