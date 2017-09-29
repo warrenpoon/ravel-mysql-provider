@@ -1,6 +1,6 @@
 {
   "name": "ravel-mysql-provider",
-  "version": "0.21.1",
+  "version": "0.22.0",
   "author": "Sean McIntyre <s.mcintyre@xverba.ca>",
   "description": "MySQL Provider for Ravel Rapid Application Development Framework",
   "contributors": [
@@ -30,7 +30,7 @@
     "generic-pool": "2.5.4"
   },
   "peerDependencies": {
-    "ravel": "0.21.x"
+    "ravel": "0.22.x"
   },
   "devDependencies": {
     "chai": "4.0.2",
@@ -48,7 +48,7 @@
     "eslint-plugin-promise": "3.5.0",
     "eslint-plugin-jsdoc": "3.1.1",
     "redis-mock": "0.17.1",
-    "ravel": "^0.21.0",
+    "ravel": "^0.22.0",
     "sinon": "2.3.7",
     "sinon-chai": "2.11.0",
     "upath": "1.0.0",
