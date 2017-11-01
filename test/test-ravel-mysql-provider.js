@@ -38,25 +38,24 @@ describe('Ravel MySQLProvider', () => {
   });
 
   describe('#prelisten()', () => {
-    it('should create a generic pool of connections', (done) => {
+    it('should create a generic pool of connections', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       expect(provider.pool).to.be.an('object');
       expect(provider.pool).to.have.a.property('acquire').which.is.a('function');
       expect(provider.pool).to.have.a.property('release').which.is.a('function');
       expect(provider.pool).to.have.a.property('destroy').which.is.a('function');
-      app.close();
-      done();
+      await app.close();
     });
 
-    it('should create a pool which destroys connections when they error out', (done) => {
+    it('should create a pool which destroys connections when they error out', async () => {
       const EventEmitter = require('events').EventEmitter;
       const conn = new EventEmitter();
       conn.connect = (cb) => cb(new Error());
@@ -71,112 +70,108 @@ describe('Ravel MySQLProvider', () => {
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       const spy = sinon.stub(provider.pool, 'destroy');
       conn.emit('error');
       expect(spy).to.have.been.called;
-      done();
+      await app.close();
     });
   });
 
   describe('#end()', () => {
-    it('should drain all connections in the pool', (done) => {
+    it('should drain all connections in the pool', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       const drainSpy = sinon.spy(provider.pool, 'drain');
 
       provider.end();
-      app.close();
+      await app.close();
       expect(drainSpy).to.have.been.called;
-      done();
     });
 
-    it('should do nothing when the provider is not initialized', (done) => {
+    it('should do nothing when the provider is not initialized', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       provider.end();
-      app.close();
-      done();
+      await app.close();
     });
   });
 
   describe('#release()', () => {
-    it('should release a connection back to the pool if no errors were encountered', (done) => {
+    it('should release a connection back to the pool if no errors were encountered', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       const releaseSpy = sinon.spy(provider.pool, 'release');
-      provider.getTransactionConnection().then((conn) => {
+      await provider.getTransactionConnection().then((conn) => {
         provider.release(conn);
         expect(releaseSpy).to.have.been.called;
-        app.close();
-        done();
+        return app.close();
       });
     });
 
-    it('should remove a connection from the pool permanently if fatal errors were encountered', (done) => {
+    it('should remove a connection from the pool permanently if fatal errors were encountered', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       const destroySpy = sinon.spy(provider.pool, 'destroy');
-      provider.getTransactionConnection().then((conn) => {
+      await provider.getTransactionConnection().then((conn) => {
         const err = new Error();
         err.fatal = true;
         provider.release(conn, err);
         expect(destroySpy).to.have.been.called;
-        app.close();
-        done();
+        return app.close();
       });
     });
   });
 
   describe('#getTransactionConnection()', () => {
-    it('should resolve with a connection', () => {
+    it('should resolve with a connection', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       return provider.getTransactionConnection().then((c) => {
         expect(c).to.have.a.property('query').that.is.a('function');
         provider.release(c);
         provider.end();
-        app.close();
+        return app.close();
       });
     });
 
-    it('should resolve with a connection which supports named positional parameters', () => {
+    it('should resolve with a connection which supports named positional parameters', async () => {
       const provider = new (require('../lib/ravel-mysql-provider'))(app);
       app.set('mysql options', {
         user: 'root',
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       return provider.getTransactionConnection().then((c) => {
@@ -188,11 +183,11 @@ describe('Ravel MySQLProvider', () => {
           'UPDATE posts SET title = :schtuff', {})).to.equal('UPDATE posts SET title = :schtuff');
         provider.release(c);
         provider.end();
-        app.close();
+        return app.close();
       });
     });
 
-    it('should reject when a connection cannot be obtained', () => {
+    it('should reject when a connection cannot be obtained', async () => {
       const EventEmitter = require('events').EventEmitter;
       const conn = new EventEmitter();
       const connectError = new Error();
@@ -208,13 +203,13 @@ describe('Ravel MySQLProvider', () => {
         password: 'password',
         port: 13306
       });
-      app.init();
+      await app.init();
 
       provider.prelisten(app);
       return expect(provider.getTransactionConnection()).to.be.rejectedWith(connectError).then(() => app.close());
     });
 
-    it('should reject when a transaction cannot be opened', () => {
+    it('should reject when a transaction cannot be opened', async () => {
       const EventEmitter = require('events').EventEmitter;
       const conn = new EventEmitter();
       const beginTransactionError = new Error();

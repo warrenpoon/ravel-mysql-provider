@@ -46,7 +46,7 @@ describe('Ravel MySQLProvider integration test', () => {
     done();
   });
 
-  it('should provide clients with a connection to query an existing MySQL database', (done) => {
+  it('should provide clients with a connection to query an existing MySQL database', async () => {
     class TestRoutes extends Routes {
       constructor () {
         super('/');
@@ -68,19 +68,22 @@ describe('Ravel MySQLProvider integration test', () => {
     }
     mockery.registerMock(upath.join(app.cwd, 'routes'), TestRoutes);
     app.routes('routes');
-    app.init();
+    await app.init();
     app.emit('pre listen');
 
-    request.agent(app.server)
-      .get('/test')
-      .expect(200, JSON.stringify({col: '1'}))
-      .end((err) => {
-        app.close();
-        done(err);
-      });
+    return new Promise((resolve, reject) => {
+      request.agent(app.server)
+        .get('/test')
+        .expect(200, JSON.stringify({col: '1'}))
+        .end((err) => {
+          app.close();
+          if (err) return reject(err);
+          resolve(err);
+        });
+    });
   });
 
-  it('should trigger a rollback when a query fails', (done) => {
+  it('should trigger a rollback when a query fails', async () => {
     let spy;
     class TestRoutes extends Routes {
       constructor () {
@@ -98,20 +101,23 @@ describe('Ravel MySQLProvider integration test', () => {
     }
     mockery.registerMock(upath.join(app.cwd, 'routes'), TestRoutes);
     app.routes('routes');
-    app.init();
+    await app.init();
     app.emit('pre listen');
 
-    request.agent(app.server)
-      .get('/test')
-      .end((err) => {
-        try {
-          expect(spy).to.have.been.called;
-          done(err);
-        } catch (e) {
-          done(e);
-        } finally {
-          app.close();
-        }
-      });
+    return new Promise((resolve, reject) => {
+      request.agent(app.server)
+        .get('/test')
+        .end((err) => {
+          try {
+            expect(spy).to.have.been.called;
+            if (err) return reject(err);
+            resolve();
+          } catch (e) {
+            reject(e);
+          } finally {
+            app.close();
+          }
+        });
+    });
   });
 });

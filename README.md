@@ -19,8 +19,7 @@ new MySQLProvider(app);
 app.modules('./modules');
 app.resources('./resources');
 // ... the rest of your Ravel app
-app.init();
-app.listen();
+app.start();
 ```
 
 ### Step 2: Access connections via `@transaction`
@@ -113,8 +112,7 @@ const MySQLProvider = require('ravel-mysql-provider');
 new MySQLProvider(app, 'first mysql');
 new MySQLProvider(app, 'second mysql');
 // ... other providers and parameters
-app.init();
-// ... the rest of your app
+app.start();
 ```
 
 *.ravelrc*
