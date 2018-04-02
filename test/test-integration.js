@@ -74,7 +74,7 @@ describe('Ravel MySQLProvider integration test', () => {
     return new Promise((resolve, reject) => {
       request.agent(app.server)
         .get('/test')
-        .expect(200, JSON.stringify({col: '1'}))
+        .expect(200, JSON.stringify({col: 1}))
         .end((err) => {
           app.close();
           if (err) return reject(err);
