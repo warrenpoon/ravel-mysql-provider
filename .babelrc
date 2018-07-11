@@ -1,4 +1,8 @@
 {
   "retainLines": true,
-  "plugins": ["transform-decorators-legacy", "transform-async-to-generator"]
+  "env": {
+    "test": {
+      "plugins": ["transform-decorators-legacy"]
+    }
+  }
 }
