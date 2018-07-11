@@ -14,10 +14,10 @@
 ```javascript
 const app = new require('ravel')();
 const MySQLProvider = require('ravel-mysql-provider');
-new MySQLProvider(app);
+app.registerProvider(MySQLProvider);
 // ... other providers and parameters
-app.modules('./modules');
-app.resources('./resources');
+app.scan('./modules');
+app.scan('./resources');
 // ... the rest of your Ravel app
 app.start();
 ```
@@ -27,17 +27,13 @@ app.start();
 *resources/posts_resource.js*
 ```javascript
 const Ravel = require('ravel');
-const inject = Ravel.inject;
+const autoinject = Ravel.autoinject;
 const Resource = Ravel.Resource;
 const transaction = Resource.transaction;
 
-@inject('posts')
-class PostsResource extends Resource {
-  constructor(posts) {
-    super('/posts');
-    this.posts = posts;
-  }
-
+@Resource('/post')
+@autoinject('posts')
+class PostsResource {
   /**
    * Retrieve a single post
    */
@@ -59,7 +55,8 @@ class PostsResource extends Resource {
 const Ravel = require('ravel');
 const Module = Ravel.Module;
 
-class Posts extends Module {
+@Module('posts')
+class Posts {
   getPost(transaction, id) {
     return new Promise((resolve, reject) => {
       const mysql = transaction['mysql'];
@@ -89,15 +86,12 @@ Requiring the `ravel-mysql-provider` module will register a configuration parame
     "port": 3306,
     "user": "root",
     "password": "a password",
-    "database": "mydatabase",
-    "acquireTimeoutMillis": 5000,
-    "idleTimeoutMillis": 5000,
-    "connectionLimit": 10
+    "database": "mydatabase"
   }
 }
 ```
 
-All options for a `node-mysql` connection are supported, and are documented [here](https://github.com/felixge/node-mysql#establishing-connections). Additionally, the `connectionLimit` parameter controls the size of the underlying connection pool, while `idleTimeoutMillis` controls how long connections will remain idle in the pool before being destroyed. It is vital that you make `idleTimeoutMillis` shorter than the `wait_timeout` set in your mysql configuration `my.cnf`, otherwise you you might have timed-out connections sitting in your pool. Note: `idleTimeoutMillis` is specified in milliseconds, while `wait_timeout` is specified in seconds.
+All options for a `mysql` connection are supported, and are documented [here](https://github.com/mysqljs/mysql#establishing-connections).
 
 ## Additional Notes
 
@@ -109,8 +103,8 @@ All options for a `node-mysql` connection are supported, and are documented [her
 ```javascript
 const app = new require('ravel')();
 const MySQLProvider = require('ravel-mysql-provider');
-new MySQLProvider(app, 'first mysql');
-new MySQLProvider(app, 'second mysql');
+app.registerProvider(app, 'first mysql');
+app.registerProvider(app, 'second mysql');
 // ... other providers and parameters
 app.start();
 ```
@@ -123,18 +117,14 @@ app.start();
     "port": 3306,
     "user": "root",
     "password": "a password",
-    "database": "myfirstdatabase",
-    "idleTimeoutMillis": 5000,
-    "connectionLimit": 10
+    "database": "myfirstdatabase"
   },
   "second mysql options": {
     "host": "localhost",
     "port": 3307,
     "user": "root",
     "password": "another password",
-    "database": "myseconddatabase",
-    "idleTimeoutMillis": 5000,
-    "connectionLimit": 10
+    "database": "myseconddatabase"
   }
 }
 ```
@@ -145,7 +135,8 @@ const Ravel = require('ravel');
 const Resource = Ravel.Resource;
 const transaction = Resource.transaction;
 
-class PostsResource extends Resource {
+@Resource('/post')
+class PostsResource {
   // ...
   @transaction('first mysql', 'second mysql')
   get(ctx) {
